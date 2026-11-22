@@ -29,10 +29,12 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: Text('Segera hadir'),
           ),
           const _Header('Data'),
-          const ListTile(
-            leading: Icon(Icons.backup_outlined),
-            title: Text('Backup & Restore'),
-            subtitle: Text('Segera hadir (langkah berikutnya)'),
+          ListTile(
+            leading: const Icon(Icons.backup_outlined),
+            title: const Text('Backup & Restore'),
+            subtitle: const Text('Simpan ke Drive, pindah HP, backup otomatis mingguan'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/backup'),
           ),
           const _Header('Keamanan'),
           ListTile(

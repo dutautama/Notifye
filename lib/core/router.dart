@@ -10,6 +10,7 @@ import '../features/business/business_home_screen.dart';
 import '../features/content/content_home_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/reports/reports_screen.dart';
+import '../features/settings/backup_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/shell/main_shell.dart';
 
@@ -45,6 +46,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/buat-pin', builder: (_, _) => const SetupPinScreen()),
       GoRoute(path: '/kunci', builder: (_, _) => const LockScreen()),
       GoRoute(path: '/ubah-pin', builder: (_, _) => const ChangePinScreen()),
+      GoRoute(path: '/backup', builder: (_, _) => const BackupScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => MainShell(shell: shell),
         branches: [

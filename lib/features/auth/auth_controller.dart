@@ -45,13 +45,19 @@ class AuthController extends Notifier<AuthStatus> {
 
   Future<void> createPin(String pin) async {
     await _pins.setPin(pin);
-    state = AuthStatus.unlocked;
+    _onUnlocked();
   }
 
   Future<PinCheck> unlock(String pin) async {
     final result = await _pins.verify(pin);
-    if (result is PinOk) state = AuthStatus.unlocked;
+    if (result is PinOk) _onUnlocked();
     return result;
+  }
+
+  void _onUnlocked() {
+    state = AuthStatus.unlocked;
+    // Backup otomatis mingguan; gagal pun tidak boleh mengganggu pemakaian.
+    unawaited(ref.read(backupServiceProvider).runAutoBackupIfDue().then((_) {}, onError: (_) {}));
   }
 
   void lock() {
