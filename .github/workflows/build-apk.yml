@@ -1,4 +1,4 @@
-# Membangun APK Android otomatis di server GitHub (tanpa PC, tanpa secrets).
+# Membangun APK Android (+ IPA iOS tanpa tanda tangan) otomatis di server GitHub (tanpa PC, tanpa secrets).
 # Hasil:
 #   - Artifact "UsahaKonten-APK-<nomor>" di halaman run (semua branch)
 #   - Release "build-<nomor>" berisi file .apk (setiap push ke main)
@@ -100,8 +100,11 @@ jobs:
             APK UsahaKonten v${{ env.VERSION_NAME }} — build ${{ github.run_number }} (100% offline)
             Commit: `${{ github.sha }}`
 
-            **Cara instal dari ponsel:** ketuk file `.apk` di bawah (Assets) →
-            Unduh → buka → izinkan "Instal aplikasi tidak dikenal" bila diminta.
+            **Android:** ketuk file `.apk` di bawah (Assets) → Unduh → buka →
+            izinkan "Instal aplikasi tidak dikenal" bila diminta.
+
+            **iOS:** file `-ios-unsigned.ipa` BELUM ditandatangani Apple, jadi tidak bisa
+            langsung dipasang di iPhone. Lihat docs/IOS.md untuk cara menandatangani.
 
       - name: Ringkasan
         run: |
@@ -111,3 +114,50 @@ jobs:
             echo "- Branch main: https://github.com/${{ github.repository }}/releases/tag/build-${{ github.run_number }}"
             echo "- Branch lain: unduh dari bagian **Artifacts** di bawah."
           } >> "$GITHUB_STEP_SUMMARY"
+
+  ios:
+    name: Build IPA iOS (tanpa tanda tangan)
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Siapkan Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Unduh dependensi
+        run: flutter pub get
+
+      - name: Build iOS tanpa codesign & bungkus jadi IPA
+        run: |
+          VERSION_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
+          flutter build ios --release --no-codesign \
+            --build-number=${{ github.run_number }} \
+            --dart-define=APP_VERSION="$VERSION_NAME (build ${{ github.run_number }}, iOS)"
+          mkdir -p dist/Payload
+          cp -R build/ios/iphoneos/Runner.app dist/Payload/
+          (cd dist && zip -qry "UsahaKonten-v${VERSION_NAME}-build${{ github.run_number }}-ios-unsigned.ipa" Payload)
+          rm -rf dist/Payload
+          ls -lh dist
+
+      - name: Unggah IPA sebagai artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UsahaKonten-IPA-unsigned-${{ github.run_number }}
+          path: dist/*.ipa
+          retention-days: 14
+          compression-level: 0
+
+      - name: Tambahkan IPA ke Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          files: dist/*.ipa

@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../data/repositories/meta_repository.dart';
 import '../../providers/app_providers.dart';
 import 'pin_service.dart';
 
@@ -27,7 +30,15 @@ class AuthController extends Notifier<AuthStatus> {
   }
 
   Future<void> _init() async {
-    state = await _pins.hasPin() ? AuthStatus.locked : AuthStatus.needsSetup;
+    var hasPin = await _pins.hasPin();
+    final meta = ref.read(metaRepositoryProvider);
+    // iOS: Keychain TIDAK terhapus saat aplikasi di-uninstall, database terhapus.
+    // PIN tanpa penanda di database = sisa instalasi lama → minta buat PIN baru.
+    if (hasPin && defaultTargetPlatform == TargetPlatform.iOS && await meta.get(MetaRepository.pinCreated) == null) {
+      await _pins.clear();
+      hasPin = false;
+    }
+    state = hasPin ? AuthStatus.locked : AuthStatus.needsSetup;
   }
 
   void _onResume() {
@@ -40,6 +51,7 @@ class AuthController extends Notifier<AuthStatus> {
 
   Future<void> createPin(String pin) async {
     await _pins.setPin(pin);
+    await ref.read(metaRepositoryProvider).set(MetaRepository.pinCreated, DateTime.now().toUtc().toIso8601String());
     _onUnlocked();
   }
 

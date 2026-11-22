@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -78,10 +79,15 @@ class _PrinterScreenState extends ConsumerState<PrinterScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           if (_busy) const LinearProgressIndicator(),
-          const Text(
-            '1. Nyalakan printer thermal dan pair dulu di Setelan HP → Bluetooth.\n'
-            '2. Ketuk "Cari printer", lalu pilih printer Anda.\n'
-            '3. Ketuk "Cetak halaman tes".',
+          Text(
+            defaultTargetPlatform == TargetPlatform.iOS
+                ? '1. Nyalakan printer thermal Bluetooth LE di dekat iPhone.\n'
+                      '2. Ketuk "Cari printer", lalu pilih printer Anda.\n'
+                      '3. Ketuk "Cetak halaman tes".\n'
+                      'Catatan: iPhone hanya mendukung printer Bluetooth LE (BLE).'
+                : '1. Nyalakan printer thermal dan pair dulu di Setelan HP → Bluetooth.\n'
+                      '2. Ketuk "Cari printer", lalu pilih printer Anda.\n'
+                      '3. Ketuk "Cetak halaman tes".',
           ),
           const SizedBox(height: 16),
           ListTile(
@@ -108,7 +114,7 @@ class _PrinterScreenState extends ConsumerState<PrinterScreen> {
           FilledButton.icon(
             onPressed: _busy ? null : _scan,
             icon: const Icon(Icons.bluetooth_searching),
-            label: const Text('Cari printer (yang sudah di-pair)'),
+            label: const Text('Cari printer'),
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(

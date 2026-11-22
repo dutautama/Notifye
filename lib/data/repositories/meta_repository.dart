@@ -10,6 +10,9 @@ class MetaRepository {
   static const printerName = 'printer_name';
   static const printerWidth = 'printer_width_mm';
 
+  /// Penanda bahwa PIN dibuat untuk database INI (bukan sisa Keychain iOS dari instalasi lama).
+  static const pinCreated = 'pin_created';
+
   Future<String?> get(String key) async =>
       (await (_db.select(_db.meta)..where((m) => m.key.equals(key))).getSingleOrNull())?.value;
 
