@@ -24,4 +24,8 @@ Data tersimpan **hanya di HP** (SQLite), dikunci **PIN 6 digit**, tanpa akun & t
 - **Uninstall menghapus semua data** di HP.
 - Instal APK **hanya** dari halaman Releases repo ini.
 
+## iPhone (iOS)
+Setiap build juga menghasilkan `…-ios-unsigned.ipa`. File ini **belum ditandatangani Apple** sehingga belum
+bisa dipasang langsung di iPhone — pilihan cara memasangnya ada di [docs/IOS.md](docs/IOS.md).
+
 Dokumen: [Panduan uji](docs/PANDUAN-UJI.md) · [Arsitektur](docs/ARSITEKTUR.md) · [Aturan proyek](CLAUDE.md)

@@ -65,7 +65,8 @@ Pemilik**, dan **Catatan Pelajaran** setiap kali menyelesaikan pekerjaan.
 | Database | SQLite lokal: `drift` 2.35 + `drift_flutter` 0.3 (sqlite3 3.x membawa SQLite sendiri — `sqlite3_flutter_libs` sudah EOL, jangan dipakai) |
 | Kunci | PIN 6 digit, PBKDF2-HMAC-SHA256 100k iterasi + salt, `flutter_secure_storage` 11 |
 | Build | GitHub Actions → `.github/workflows/build-apk.yml` (tanpa secrets) |
-| App ID | `id.usahakonten.app` |
+| App ID | `id.usahakonten.app` (Android applicationId & iOS bundle id) |
+| iOS | `ios/` iOS 15+, Swift Package Manager; CI job `ios` (macos-latest) → IPA **unsigned** di Release |
 
 ### Catatan penting Flutter 3.50
 - Material dipisah ke paket **`material_ui`**: import `package:material_ui/material_ui.dart`,
@@ -127,6 +128,7 @@ test/fixtures/                 # supabase-export-sample.json (data uji palsu unt
 | 7 | Konten: kanban ide, aset (link/lampiran), relasi produk, kalender, publikasi & reach | ✅ |
 
 Semua fitur wajib selesai (skema v1, tidak ada perubahan skema sejak migrasi offline).
+iOS: kode & build IPA unsigned ✅; penandatanganan/TestFlight ⏳ menunggu keputusan pemilik.
 Ide lanjutan (belum diminta): enkripsi database (SQLCipher), backup terenkripsi password, kunci biometrik.
 
 ## Pola yang sudah ada (pakai ulang!)
@@ -146,6 +148,11 @@ Ide lanjutan (belum diminta): enkripsi database (SQLCipher), backup terenkripsi 
 - Folder lampiran: `AppResetService.attachmentsDir()` (`<documents>/attachments`).
 
 ## Catatan Pelajaran
+- iOS: IPA tanpa tanda tangan tidak bisa dipasang di iPhone. Penandatanganan resmi = Apple Developer Program
+  (US$99/th) + API key App Store Connect sebagai GitHub Secrets → TestFlight. Ini MENGUBAH aturan "tanpa secrets":
+  hanya boleh dikerjakan setelah pemilik setuju eksplisit (lihat docs/IOS.md). Jangan sarankan layanan sign pihak ketiga.
+- iOS: Keychain bertahan setelah uninstall → `AuthController._init` menghapus PIN bila penanda `pin_created`
+  (tabel meta) tidak ada. Printer di iOS hanya BLE. Info.plist wajib berisi teks izin kamera/Bluetooth/galeri.
 - **Flutter 3.50 + material_ui**: paket pihak ketiga yang memakai widget `package:flutter/material` (InkWell,
   dll.) CRASH ("No Material widget found") karena kelas Material berbeda. `table_calendar` dibuang → kalender
   sendiri (`MonthCalendar`). Sebelum menambah paket UI, cek `grep -r "package:flutter/material.dart"` di lib-nya.
