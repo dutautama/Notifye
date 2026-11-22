@@ -121,7 +121,7 @@ class BusinessHomeScreen extends ConsumerWidget {
               action(Icons.category_outlined, 'Kategori', '/usaha/kategori'),
               action(Icons.bar_chart_outlined, 'Laporan', '/laporan'),
               action(Icons.sticky_note_2_outlined, 'Catatan', '/catatan'),
-              action(Icons.settings_outlined, 'Pengaturan', '/lainnya'),
+              action(Icons.settings_outlined, 'Pengaturan', '/pengaturan'),
             ],
           ),
         ],

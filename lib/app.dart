@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'core/router.dart';
+import 'features/collection/share_intent_listener.dart';
 import 'core/theme.dart';
 
 class UsahaKontenApp extends ConsumerWidget {
@@ -19,6 +20,7 @@ class UsahaKontenApp extends ConsumerWidget {
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
       routerConfig: router,
+      builder: (context, child) => ShareIntentListener(child: child ?? const SizedBox.shrink()),
       locale: const Locale('id', 'ID'),
       supportedLocales: const [Locale('id', 'ID')],
       localizationsDelegates: const [

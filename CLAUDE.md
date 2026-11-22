@@ -135,7 +135,7 @@ Semua fitur wajib selesai (skema v1, tidak ada perubahan skema sejak migrasi off
 | 1–8 | Fondasi + usaha + backup/restore | ✅ |
 | 9–11 | Konten (ide → publish → kalender → reach) | ✅ |
 | 12 | Catatan (markdown ringan, tag, pin, arsip, FTS5, lampiran, auto-save 1 dtk, share teks) | ✅ v1.1.0 |
-| 13 | Daftar bacaan/tontonan (tipe, status, rating, progress, statistik, terima share link) | ⏳ |
+| 13 | Daftar bacaan/tontonan (tipe, status, rating, progress, statistik, terima share link) | ✅ v1.2.0 |
 | 14 | Tautan antar-modul (catatan ↔ produk/pelanggan/transaksi/ide/bacaan; bacaan ↔ ide) | ⬜ |
 | 15 | Beranda ringkas + navigasi baru + polish | ⬜ |
 Skema v2 DISETUJUI pemilik 2026-11-22 & dirilis (6 tabel + notes_fts). Perubahan skema berikutnya = v3, wajib konfirmasi lagi.
@@ -160,6 +160,11 @@ Ide lanjutan (belum diminta): enkripsi database (SQLCipher), backup terenkripsi 
 - Folder lampiran: `AppResetService.attachmentsDir()` (`<documents>/attachments`).
 
 ## Catatan Pelajaran
+- Navigasi (v1.2.0): Beranda · Usaha · Konten · Catatan · Koleksi. Pengaturan = `/pengaturan` (ikon ⚙ Beranda & kotak di
+  Usaha), Laporan = `/laporan` (ikon Beranda & kotak di Usaha).
+- Share sheet Android: `receive_sharing_intent` + intent-filter SEND text/plain + `launchMode="singleTask"`.
+  `ShareIntentListener` (di `MaterialApp.router builder`) menahan share sampai PIN terbuka. Di test widget WAJIB
+  override `shareIntentEnabledProvider` → false (EventChannel tak ada → error lewat FlutterError, bukan onError).
 - Skema v2: `notes_fts` (FTS5) menyimpan `note_id UNINDEXED`, BUKAN external-content rowid (rowid tabel ber-PK teks
   bisa berubah saat VACUUM). Sinkron via trigger; dibangun ulang setelah restore (`rebuildNotesFts`).
   Input pencarian WAJIB lewat `buildFtsQuery` (cegah sintaks FTS dari pengguna). Test migrasi: `test/migration_test.dart`.

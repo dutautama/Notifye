@@ -16,6 +16,10 @@ import '../features/business/transactions/debt_list_screen.dart';
 import '../features/business/transactions/trx_detail_screen.dart';
 import '../features/business/transactions/trx_form_screen.dart';
 import '../features/business/transactions/trx_list_screen.dart';
+import '../features/collection/collection_screen.dart';
+import '../features/collection/item_detail_screen.dart';
+import '../features/collection/item_form_screen.dart';
+import '../features/collection/shared_text.dart';
 import '../features/content/content_home_screen.dart';
 import '../features/content/idea_detail_screen.dart';
 import '../features/content/idea_form_screen.dart';
@@ -65,6 +69,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profil-usaha', builder: (_, _) => const BusinessProfileScreen()),
       GoRoute(path: '/printer', builder: (_, _) => const PrinterScreen()),
       GoRoute(path: '/laporan', builder: (_, _) => const ReportsScreen()),
+      GoRoute(path: '/pengaturan', builder: (_, _) => const SettingsScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => MainShell(shell: shell),
         branches: [
@@ -175,7 +180,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           StatefulShellBranch(
-            routes: [GoRoute(path: '/lainnya', builder: (_, _) => const SettingsScreen())],
+            routes: [
+              GoRoute(
+                path: '/koleksi',
+                builder: (_, _) => const CollectionScreen(),
+                routes: [
+                  GoRoute(path: 'baru', builder: (_, st) => ItemFormScreen(draft: st.extra as SharedItemDraft?)),
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, st) => ItemDetailScreen(itemId: st.pathParameters['id']!),
+                    routes: [
+                      GoRoute(path: 'ubah', builder: (_, st) => ItemFormScreen(itemId: st.pathParameters['id'])),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

@@ -16,6 +16,7 @@ const kNoteLinkTypes = [
   LinkType.supplier,
   LinkType.transaction,
   LinkType.contentIdea,
+  LinkType.watchlistItem,
 ];
 
 class NoteLinksSection extends ConsumerWidget {

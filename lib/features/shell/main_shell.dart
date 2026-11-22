@@ -35,7 +35,11 @@ class MainShell extends StatelessWidget {
             selectedIcon: Icon(Icons.sticky_note_2),
             label: 'Catatan',
           ),
-          NavigationDestination(icon: Icon(Icons.more_horiz), label: 'Lainnya'),
+          NavigationDestination(
+            icon: Icon(Icons.collections_bookmark_outlined),
+            selectedIcon: Icon(Icons.collections_bookmark),
+            label: 'Koleksi',
+          ),
         ],
       ),
     );

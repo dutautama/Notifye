@@ -10,6 +10,7 @@ import 'package:usahakonten/data/database/app_database.dart';
 import 'package:usahakonten/data/repositories/invoice_repository.dart';
 import 'package:usahakonten/data/repositories/transaksi_repository.dart';
 import 'package:usahakonten/features/auth/auth_controller.dart';
+import 'package:usahakonten/features/collection/share_intent_listener.dart';
 import 'package:usahakonten/providers/app_providers.dart';
 
 class _UnlockedAuth extends AuthController {
@@ -27,7 +28,7 @@ void main() {
     addTearDown(tester.view.reset);
 
     final db = AppDatabase(NativeDatabase.memory());
-    late String productId, trxId, ideaId, customerId, noteId;
+    late String productId, trxId, ideaId, customerId, noteId, itemId;
     await tester.runAsync(() async {
       productId = newId();
       await db.into(db.products).insert(ProductsCompanion.insert(
@@ -53,6 +54,12 @@ void main() {
           title: const Value('Catatan ukuran kaos pelanggan'), body: const Value('## Ukuran\n- [ ] L\n- [x] **XL**'),
           isPinned: const Value(true)));
       noteId = note.id;
+      final item = await db.into(db.watchlistItems).insertReturning(WatchlistItemsCompanion.insert(
+          title: 'Atomic Habits — kebiasaan kecil hasil besar', type: const Value('buku'), status: const Value('sedang'),
+          creator: const Value('James Clear'), progress: const Value(120), progressTotal: const Value(320),
+          rating: const Value(5), url: const Value('https://example.com/buku')));
+      itemId = item.id;
+      await db.into(db.watchlistItemIdeas).insert(WatchlistItemIdeasCompanion.insert(itemId: item.id, ideaId: idea.id));
       await db.into(db.noteTags).insert(NoteTagsCompanion.insert(noteId: note.id, tag: 'pelanggan'));
       await db.into(db.noteLinks).insert(NoteLinksCompanion.insert(noteId: note.id, entityType: 'product', entityId: productId));
       await db.into(db.contentPublications).insert(ContentPublicationsCompanion.insert(
@@ -62,6 +69,7 @@ void main() {
     final container = ProviderContainer(overrides: [
       databaseProvider.overrideWithValue(db),
       authControllerProvider.overrideWith(_UnlockedAuth.new),
+      shareIntentEnabledProvider.overrideWithValue(false),
     ]);
     await tester.pumpWidget(UncontrolledProviderScope(container: container, child: const UsahaKontenApp()));
 
@@ -103,7 +111,11 @@ void main() {
     await visit('/catatan', 'Catatan ukuran kaos');
     await visit('/catatan/baru', 'Kategori');
     await visit('/catatan/$noteId', 'XL');
-    await visit('/lainnya', 'Profil Usaha');
+    await visit('/pengaturan', 'Profil Usaha');
+    await visit('/koleksi', 'Atomic Habits');
+    await visit('/koleksi/$itemId', 'Rating');
+    await visit('/koleksi/baru', 'Tambah ke Koleksi');
+    await visit('/koleksi/$itemId/ubah', 'Ubah item');
     await visit('/profil-usaha', 'Nama usaha');
     await visit('/printer', 'Lebar kertas');
     await visit('/ubah-pin', 'PIN lama');
@@ -138,7 +150,9 @@ void main() {
     await visit('/laporan', 'Omzet');
     await visit('/catatan', 'Catatan ukuran kaos');
     await visit('/catatan/$noteId', 'XL');
-    await visit('/lainnya', 'Profil Usaha');
+    await visit('/pengaturan', 'Profil Usaha');
+    await visit('/koleksi', 'Atomic Habits');
+    await visit('/koleksi/$itemId', 'Rating');
     // Lepas widget & provider dulu agar stream drift berhenti, baru tutup database.
     await tester.pumpWidget(const SizedBox());
     container.dispose();

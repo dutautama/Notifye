@@ -3,7 +3,7 @@ description: "UsahaKonten — manajemen usaha jasa/digital & konten media sosial
 publish_to: 'none'
 
 # Format: <versi>+<build>. CI otomatis menimpa nomor build dengan run_number.
-version: 1.1.0+1
+version: 1.2.0+1
 
 environment:
   sdk: ^3.14.0
@@ -34,6 +34,7 @@ dependencies:
   file_picker: ^13.4.1
   # Master data
   mobile_scanner: ^7.5.0
+  receive_sharing_intent: ^1.9.0
   # Invoice, struk & laporan
   pdf: ^3.13.1
   print_bluetooth_thermal: ^1.2.5
