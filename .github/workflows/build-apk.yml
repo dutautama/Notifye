@@ -1,0 +1,149 @@
+# Membangun APK Android otomatis di server GitHub (tanpa PC).
+# Hasil:
+#   - Artifact "UsahaKonten-APK-<nomor>" di halaman run (semua branch)
+#   - Release "Build <nomor>" berisi file .apk langsung (khusus branch main
+#     & jalankan manual) → paling mudah diunduh dari browser ponsel.
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+      - 'claude/**'
+      - 'ccr-**'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'supabase/**'
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Terbitkan juga sebagai Release (unduhan .apk langsung)?'
+        type: boolean
+        default: true
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # dibutuhkan untuk membuat Release
+
+env:
+  FLUTTER_VERSION: '3.50.1'
+
+jobs:
+  build:
+    name: Analisis, uji & build APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Siapkan Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Siapkan Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Unduh dependensi
+        run: flutter pub get
+
+      - name: Analisis kode
+        run: flutter analyze --no-fatal-infos
+
+      - name: Jalankan unit test
+        run: flutter test
+
+      - name: Cek secrets Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
+            echo "::warning title=Secrets belum diisi::SUPABASE_URL / SUPABASE_KEY kosong. APK tetap dibangun tetapi akan menampilkan layar 'Konfigurasi Belum Lengkap'."
+          fi
+
+      - name: Siapkan kunci tanda tangan (keystore)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > android/app/release.jks
+            {
+              echo "storeFile=release.jks"
+              echo "storePassword=$KEYSTORE_PASSWORD"
+              echo "keyAlias=$KEY_ALIAS"
+              echo "keyPassword=$KEY_PASSWORD"
+            } > android/key.properties
+            echo "Keystore rilis dipakai."
+          else
+            echo "::warning title=Keystore belum diisi::APK ditandatangani kunci debug. Update aplikasi nanti harus uninstall dulu. Isi secret KEYSTORE_BASE64 dkk."
+          fi
+
+      - name: Build APK rilis
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          VERSION_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
+          flutter build apk --release \
+            --build-number=${{ github.run_number }} \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_KEY="$SUPABASE_KEY" \
+            --dart-define=APP_VERSION="$VERSION_NAME (build ${{ github.run_number }})"
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             "dist/UsahaKonten-v${VERSION_NAME}-build${{ github.run_number }}.apk"
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          ls -lh dist
+
+      - name: Hapus keystore dari runner
+        if: always()
+        run: rm -f android/app/release.jks android/key.properties
+
+      - name: Unggah APK sebagai artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UsahaKonten-APK-${{ github.run_number }}
+          path: dist/*.apk
+          retention-days: 14
+          compression-level: 0
+
+      - name: Terbitkan Release (unduhan langsung)
+        if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.publish_release)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }} (v${{ env.VERSION_NAME }})
+          target_commitish: ${{ github.sha }}
+          prerelease: ${{ github.ref != 'refs/heads/main' }}
+          files: dist/*.apk
+          body: |
+            APK UsahaKonten v${{ env.VERSION_NAME }} — build ${{ github.run_number }}
+            Branch: `${{ github.ref_name }}` · Commit: `${{ github.sha }}`
+
+            **Cara instal dari ponsel:** ketuk file `.apk` di bawah (Assets) →
+            Unduh → buka → izinkan "Instal aplikasi tidak dikenal" bila diminta.
+
+      - name: Ringkasan
+        run: |
+          {
+            echo "## ✅ APK siap"
+            echo "- Versi: **${VERSION_NAME}** (build ${{ github.run_number }})"
+            echo "- Unduh: gulir ke bawah ke bagian **Artifacts** → \`UsahaKonten-APK-${{ github.run_number }}\` (file .zip, ekstrak untuk mendapatkan .apk)."
+            echo "- Branch main / jalankan manual: tersedia juga di halaman **Releases** (file .apk langsung)."
+          } >> "$GITHUB_STEP_SUMMARY"
