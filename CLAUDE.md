@@ -162,6 +162,10 @@ Ide lanjutan (belum diminta): enkripsi database (SQLCipher), backup terenkripsi 
 - Folder lampiran: `AppResetService.attachmentsDir()` (`<documents>/attachments`).
 
 ## Catatan Pelajaran
+- `receive_sharing_intent` 1.9 butuh compileSdk 37 → `compileSdk = maxOf(flutter.compileSdkVersion, 37)`.
+  Plugin baru bisa menaikkan syarat compileSdk: baca log `checkReleaseAarMetadata` bila build APK gagal.
+- Workflow: IPA hanya ditambahkan ke Release lewat job `ios-release` (needs build+ios) — mencegah Release
+  berisi IPA saja saat APK gagal (pernah terjadi di build-17).
 - Navigasi (v1.2.0): Beranda · Usaha · Konten · Catatan · Koleksi. Pengaturan = `/pengaturan` (ikon ⚙ Beranda & kotak di
   Usaha), Laporan = `/laporan` (ikon Beranda & kotak di Usaha).
 - Share sheet Android: `receive_sharing_intent` + intent-filter SEND text/plain + `launchMode="singleTask"`.

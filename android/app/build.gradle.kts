@@ -6,7 +6,9 @@ plugins {
 
 android {
     namespace = "id.usahakonten.app"
-    compileSdk = flutter.compileSdkVersion
+    // receive_sharing_intent 1.9 butuh compileSdk ≥ 37 (hanya API saat kompilasi;
+    // minSdk & targetSdk tidak berubah).
+    compileSdk = maxOf(flutter.compileSdkVersion, 37)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

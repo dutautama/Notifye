@@ -154,10 +154,23 @@ jobs:
           retention-days: 14
           compression-level: 0
 
-      - name: Tambahkan IPA ke Release
-        if: github.ref == 'refs/heads/main'
+  # IPA hanya ditambahkan ke Release bila APK berhasil dibangun & dirilis.
+  ios-release:
+    name: Tambahkan IPA ke Release
+    needs: [build, ios]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: UsahaKonten-IPA-unsigned-${{ github.run_number }}
+          path: dist
+
+      - name: Unggah ke Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           target_commitish: ${{ github.sha }}
+          make_latest: true
           files: dist/*.ipa
