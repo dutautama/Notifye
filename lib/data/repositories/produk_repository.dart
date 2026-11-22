@@ -105,7 +105,13 @@ class ProdukRepository {
     return newCatId;
   }
 
-  Future<void> deleteCategory(String id) =>
-      (_db.update(_db.categories)..where((c) => c.id.equals(id))).write(
-          CategoriesCompanion(deletedAt: Value(DateTime.now()), updatedAt: Value(DateTime.now())));
+  /// Soft delete kategori; produk di dalamnya menjadi "tanpa kategori"
+  /// (FK ON DELETE SET NULL tidak terpicu oleh soft delete).
+  Future<void> deleteCategory(String id) => _db.transaction(() async {
+        final now = DateTime.now();
+        await (_db.update(_db.products)..where((p) => p.categoryId.equals(id)))
+            .write(ProductsCompanion(categoryId: const Value(null), updatedAt: Value(now)));
+        await (_db.update(_db.categories)..where((c) => c.id.equals(id)))
+            .write(CategoriesCompanion(deletedAt: Value(now), updatedAt: Value(now)));
+      });
 }

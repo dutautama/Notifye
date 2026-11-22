@@ -31,6 +31,12 @@ dependencies:
   archive: ^4.7.1
   share_plus: ^13.3.1
   file_picker: ^13.4.1
+  # Master data
+  mobile_scanner: ^7.5.0
+  # Invoice, struk & laporan
+  pdf: ^3.13.1
+  print_bluetooth_thermal: ^1.2.5
+  table_calendar: ^3.3.0
 
 dev_dependencies:
   flutter_test:

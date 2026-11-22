@@ -18,15 +18,19 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         children: [
           const _Header('Usaha'),
-          const ListTile(
-            leading: Icon(Icons.business),
-            title: Text('Profil Usaha'),
-            subtitle: Text('Segera hadir'),
+          ListTile(
+            leading: const Icon(Icons.business),
+            title: const Text('Profil Usaha'),
+            subtitle: const Text('Nama, logo, alamat, info pembayaran di invoice'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/profil-usaha'),
           ),
-          const ListTile(
-            leading: Icon(Icons.print),
-            title: Text('Printer Bluetooth'),
-            subtitle: Text('Segera hadir'),
+          ListTile(
+            leading: const Icon(Icons.print),
+            title: const Text('Printer Bluetooth'),
+            subtitle: const Text('Printer struk thermal 58/80 mm'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/printer'),
           ),
           const _Header('Data'),
           ListTile(

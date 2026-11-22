@@ -58,6 +58,13 @@ class InvoiceRepository {
       (_db.update(_db.businessProfile)..where((b) => b.id.equals(1)))
           .write(data.copyWith(updatedAt: Value(DateTime.now())));
 
+  /// Stream data invoice; ikut berubah saat pembayaran/batal (baris transaksi
+  /// diperbarui trigger).
+  Stream<InvoiceData?> watchInvoiceData(String transactionId) =>
+      (_db.select(_db.transactions)..where((t) => t.id.equals(transactionId)))
+          .watchSingleOrNull()
+          .asyncMap((_) => getInvoiceData(transactionId));
+
   Future<InvoiceData?> getInvoiceData(String transactionId) async {
     final trx = await (_db.select(_db.transactions)..where((t) => t.id.equals(transactionId)))
         .getSingleOrNull();

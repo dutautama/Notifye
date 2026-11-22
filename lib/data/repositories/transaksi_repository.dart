@@ -47,6 +47,13 @@ class DailySalesRow {
   final int trxCount;
 }
 
+/// Baris daftar transaksi + nama pihak (pelanggan/supplier).
+class TrxListRow {
+  const TrxListRow(this.trx, this.partyName);
+  final Trx trx;
+  final String partyName;
+}
+
 /// Transaksi penjualan/pembelian & pembayaran.
 /// Stok, total, dan status lunas dihitung TRIGGER database.
 class TransaksiRepository {
@@ -106,6 +113,32 @@ class TransaksiRepository {
       ..limit(limit);
     if (type != null) q.where((t) => t.type.equals(type));
     return q.watch();
+  }
+
+  /// Daftar transaksi untuk layar riwayat. [type]: 'sale'/'purchase'/null.
+  /// [unpaidOnly] hanya yang belum lunas, [includeDeleted] tampilkan yang dibatalkan.
+  Stream<List<TrxListRow>> watchList(
+      {String? type, bool unpaidOnly = false, bool includeDeleted = false, String search = '', int limit = 300}) {
+    final t = _db.transactions;
+    final c = _db.customers;
+    final s = _db.suppliers;
+    final q = _db.select(t).join([
+      leftOuterJoin(c, c.id.equalsExp(t.customerId)),
+      leftOuterJoin(s, s.id.equalsExp(t.supplierId)),
+    ])
+      ..orderBy([OrderingTerm.desc(t.trxDate), OrderingTerm.desc(t.createdAt)])
+      ..limit(limit);
+    if (!includeDeleted) q.where(t.deletedAt.isNull());
+    if (type != null) q.where(t.type.equals(type));
+    if (unpaidOnly) q.where(t.status.isNotValue('lunas') & t.deletedAt.isNull());
+    final term = search.trim().toLowerCase();
+    if (term.isNotEmpty) {
+      q.where(t.number.lower().contains(term) | c.name.lower().contains(term) | s.name.lower().contains(term));
+    }
+    return q.watch().map((rows) => [
+          for (final r in rows)
+            TrxListRow(r.readTable(t), r.readTableOrNull(c)?.name ?? r.readTableOrNull(s)?.name ?? 'Umum'),
+        ]);
   }
 
   Future<Trx?> getById(String id) =>

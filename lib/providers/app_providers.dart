@@ -10,6 +10,7 @@ import '../data/repositories/produk_repository.dart';
 import '../data/repositories/transaksi_repository.dart';
 import '../features/auth/pin_service.dart';
 import '../services/backup/backup_service.dart';
+import '../services/printer_service.dart';
 
 /// Satu koneksi database untuk seluruh aplikasi.
 /// Di test, override dengan AppDatabase(NativeDatabase.memory()).
@@ -38,3 +39,5 @@ final metaRepositoryProvider = Provider((ref) => MetaRepository(ref.watch(databa
 
 final backupServiceProvider = Provider(
     (ref) => BackupService(ref.watch(databaseProvider), ref.watch(metaRepositoryProvider)));
+
+final printerServiceProvider = Provider((ref) => PrinterService(ref.watch(metaRepositoryProvider)));

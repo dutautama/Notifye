@@ -1,6 +1,9 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Sengaja TANPA izin INTERNET: aplikasi 100% offline. Berbagi backup
-         (WhatsApp/Drive) memakai aplikasi lain lewat intent, tidak butuh izin ini. -->
+         (WhatsApp/Drive) memakai aplikasi lain lewat intent, tidak butuh izin ini.
+         Plugin printer Bluetooth ikut menyisipkan INTERNET → dihapus paksa di sini. -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
     <application
         android:label="UsahaKonten"
         android:allowBackup="false"
