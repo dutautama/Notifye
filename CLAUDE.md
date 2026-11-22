@@ -85,14 +85,25 @@ test/                  # unit test (wajib untuk logika murni)
 | # | Modul | Status |
 |---|---|---|
 | 0 | Fondasi: skema DB, kerangka app, CI APK, dokumen | ✅ Selesai |
-| 1 | Autentikasi (admin tunggal) & Dashboard | ⏳ Berikutnya |
-| 2 | Master data: kategori, produk/jasa, pelanggan, supplier, scanner barcode | ⬜ |
+| 1 | Autentikasi (admin tunggal) & Dashboard | ✅ Selesai |
+| 2 | Master data: kategori, produk/jasa, pelanggan, supplier, scanner barcode | ⏳ Berikutnya |
 | 3 | Transaksi penjualan/pembelian, pembayaran, hutang/piutang | ⬜ |
 | 4 | Invoice PDF, share WhatsApp/email, printer struk Bluetooth | ⬜ |
 | 5 | Laporan + export Excel/PDF | ⬜ |
 | 6 | Konten: ide (kanban), aset produksi, relasi produk | ⬜ |
 | 7 | Konten: kalender/jadwal, publikasi & reach | ⬜ |
 | 8 | Profil usaha, enkripsi field, backup JSON/CSV | ⬜ |
+
+## Pola yang sudah ada (pakai ulang!)
+- Auth guard: `routerProvider` (`lib/core/router.dart`) redirect ke `/login` berdasar `AuthService.isLoggedIn`,
+  di-refresh oleh stream `onAuthStateChange`. Rute di luar tab (form, detail) didaftarkan di level atas, dibuka dengan `context.push`.
+- Data layar: `FutureProvider.autoDispose` yang `ref.watch(currentUserProvider)` → otomatis reload saat ganti user.
+  Pull-to-refresh: `RefreshIndicator(onRefresh: () => ref.refresh(x.future))`.
+- Error: `ErrorView(error, onRetry)` + `ErrorView.friendly(e)` untuk pesan Indonesia.
+- Widget: `StatCard`, `SectionCard`, `EmptyHint`, `MiniBarChart`.
+- WhatsApp: `WhatsAppService.send(phone:, message:)` (wa.me, normalisasi 08xx → 628xx).
+- Validasi form: `Validators` (`lib/core/validators.dart`), angka "1.500.000" → `Validators.parseNumber`.
+- Logika murni ditaruh sebagai fungsi top-level di service agar bisa di-unit-test (contoh `dashboard_service.dart`).
 
 ## Catatan Pelajaran
 - 2026-11-22: Skema 0001 diuji di Postgres 16 lokal dengan mock `auth.uid()`:
@@ -101,4 +112,5 @@ test/                  # unit test (wajib untuk logika murni)
   karena itu pengembalian stok saat hapus transaksi dilakukan di trigger `BEFORE DELETE` pada `transactions`.
 - Jangan `force row level security`: role `postgres` (SQL Editor/backup) perlu tetap bisa membaca.
 - Kunci debug di runner GitHub berubah tiap build → tanpa keystore rilis, update APK gagal ("konflik paket"). Keystore rilis wajib via secrets.
+- Workflow memakai `concurrency: cancel-in-progress` → push baru ke branch yang sama MEMBATALKAN build yang sedang jalan.
 - Repo publik: keystore dikirim ke pemilik lewat kanal privat, tidak di-commit.
