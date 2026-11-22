@@ -48,7 +48,7 @@ Di Chrome: buka repo ini → **Settings** (mode *Desktop site* jika menu tidak t
 ## 3. Bangun & unduh APK
 
 - Build berjalan otomatis setiap ada push ke `main`, `claude/**`, atau `ccr-**`.
-- Manual: tab **Actions → Build APK → Run workflow** → pilih branch → **Run workflow**.
+- Setiap push ke `main` otomatis membuat **Release** berisi APK (Claude yang melakukan push).
 - Tunggu ±8–12 menit sampai tanda ✅ hijau.
 
 **Unduh (cara termudah):** halaman **Releases** (di beranda repo, kolom kanan/bawah) →

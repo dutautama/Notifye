@@ -28,8 +28,8 @@ class ConfigMissingApp extends StatelessWidget {
               '1. Buka github.com → repo → Settings → Secrets and variables → Actions.\n'
               '2. Tambahkan secret SUPABASE_URL dan SUPABASE_KEY '
               '(Supabase → Project Settings → API Keys → Publishable key).\n'
-              '3. Buka tab Actions → Build APK → Run workflow.\n'
-              '4. Unduh & instal APK yang baru.',
+              '3. Beri tahu Claude "sudah" — Claude akan memicu build baru.\n'
+              '4. Buka link Release dari Claude, unduh & instal APK baru.',
               style: TextStyle(height: 1.6),
             ),
           ],

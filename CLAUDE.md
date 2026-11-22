@@ -1,7 +1,65 @@
 # CLAUDE.md — Aturan Proyek UsahaKonten
 
-Baca file ini dulu di setiap sesi. Perbarui bagian **Status Modul** dan
-**Catatan Pelajaran** setiap kali menyelesaikan pekerjaan.
+Baca file ini dulu di setiap sesi SEBELUM menjawab. Perbarui bagian **Status Modul**,
+**Status Setup Pemilik**, dan **Catatan Pelajaran** setiap kali menyelesaikan pekerjaan.
+
+## ⚠️ ATURAN KERJA SEMI-OTOMATIS (WAJIB, dari pemilik)
+
+### 1. Pembagian tugas
+- Claude mengerjakan semua yang bisa lewat tulisan: kode, SQL, workflow, dokumentasi, commit, push, memicu build.
+- Pemilik hanya mengerjakan yang secara fisik/jaringan tidak bisa Claude lakukan: login akun, klik tombol
+  di dashboard web, menyalin nilai rahasia, tap Install APK.
+- Jika ragu, default-nya Claude kerjakan sendiri. Jangan melempar tugas karena lebih mudah dijelaskan.
+
+### 2. Format panduan untuk pemilik
+- Bernomor: **[LANGKAH] → Menu → Tombol → Teks yang diketik/diklik → Hasil yang harus terlihat**.
+- Nama menu persis seperti di layar (Inggris jika UI Inggris, Indonesia jika UI Indonesia).
+- Anggap pemilik belum pernah memakai tool tsb. Istilah teknis wajib dijelaskan.
+- Sertakan 1 kalimat alasan kenapa langkah itu tidak bisa Claude kerjakan sendiri.
+- Akhiri setiap panduan dengan: "Balas 'sudah' jika berhasil, atau kirim screenshot/tulis error yang muncul."
+
+### 3. Checkpoint wajib (BERHENTI & tunggu "sudah"/"lanjut")
+- Sebelum pemilik memulai setup akun/layanan apa pun.
+- Setelah pemilik selesai setup, sebelum Claude menulis kode.
+- Setelah SQL siap, sebelum pemilik menempelnya ke dashboard.
+- Setelah APK rilis, sebelum lanjut modul berikutnya.
+- Jangan pernah lanjut fase berikutnya tanpa "sudah"/"lanjut".
+
+### 4. Otomatisasi push & build
+- Setiap modul selesai → langsung commit & push ke **main** tanpa menunggu (izin sudah diberikan pemilik).
+- Workflow memakai `on: push` (tanpa workflow_dispatch) dan otomatis membuat GitHub Release berisi APK.
+- Setelah push, beri pemilik 1 link Release langsung (`https://github.com/dutautama/Notifye/releases/tag/build-<N>`).
+  Jangan minta pemilik mencari artifact manual.
+- Build gagal → Claude perbaiki sendiri & push ulang; lapor hanya setelah berhasil.
+
+### 5. Keamanan data pemilik
+- JANGAN pernah meminta: password akun, OTP/2FA, password database, Service Role Key, file keystore.
+- Boleh ditempel di chat: Project URL, anon/publishable key, GitHub PAT (scope minimum) bila benar-benar perlu.
+- Nilai rahasia lain → arahkan pemilik mengisi lewat GitHub Secrets, bukan chat.
+- Ingatkan 1 kali di akhir setup untuk menghapus token/kredensial sementara yang tak dipakai.
+
+### 6. Gaya komunikasi
+- Bahasa Indonesia, ringkas, tanpa basa-basi.
+- Setiap balasan diakhiri 1 kalimat status: apa yang baru selesai + apa yang harus pemilik lakukan (atau "menunggu konfirmasi").
+- Jika UI Supabase/GitHub mungkin berubah, TANYAKAN tampilan menu terbaru ke pemilik sebelum menebak.
+
+### 7. Larangan keras
+- Jangan minta pemilik membuka terminal, Android Studio, VS Code, atau menjalankan CLI di HP.
+- Jangan pakai fitur yang butuh server tambahan di luar Supabase + GitHub Actions.
+- Jangan menulis kode yang bergantung pada secrets yang belum diisi; pakai placeholder + beri tahu urutan pengisian.
+
+### 8. Reset konteks
+- Aturan ini tersimpan di sini; setiap sesi baru baca CLAUDE.md dulu.
+
+## Status Setup Pemilik
+| Langkah | Status |
+|---|---|
+| Project Supabase dibuat | ⬜ belum |
+| SQL `0001_init.sql` dijalankan | ⬜ belum |
+| User admin dibuat + signup publik dimatikan | ⬜ belum |
+| Secrets `SUPABASE_URL`, `SUPABASE_KEY` | ⬜ belum |
+| Secrets keystore (4 buah) — file sudah dikirim ke pemilik via chat 2026-11-22 | ⬜ belum |
+| APK diinstal & login berhasil | ⬜ belum |
 
 ## Konteks pemilik
 - Pemilik proyek **hanya memakai ponsel Android** (tanpa PC).
@@ -69,8 +127,8 @@ test/                  # unit test (wajib untuk logika murni)
 9. Sebelum commit: `flutter analyze` harus bersih dan `flutter test` lulus (CI menjalankan keduanya).
 
 ## Alur kerja Git
-- Kembangkan di branch kerja sesi (mis. `claude/...` / `ccr-...`), push memicu build APK (artifact).
-- Push/merge ke `main` → build + Release dengan file `.apk` langsung.
+- Kerjakan di branch sesi (`claude/...` / `ccr-...`; push → build artifact saja), lalu saat modul selesai
+  fast-forward/merge ke `main` dan push → build + Release `build-<N>` berisi `.apk`.
 - Commit kecil per modul, pesan commit Bahasa Indonesia atau Inggris yang jelas.
 
 ## Secrets GitHub Actions (diisi pemilik via browser)
