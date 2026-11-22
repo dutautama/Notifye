@@ -6,6 +6,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usahakonten/data/database/app_database.dart';
+import 'package:usahakonten/data/database/migrations/migration_strategy.dart';
 import 'package:usahakonten/data/repositories/invoice_repository.dart';
 import 'package:usahakonten/data/repositories/meta_repository.dart';
 import 'package:usahakonten/data/repositories/produk_repository.dart';
@@ -65,6 +66,21 @@ void main() {
     await p.db.into(p.db.contentAssets).insert(ContentAssetsCompanion.insert(
         ideaId: idea.id, title: 'Foto', kind: const Value('gambar'),
         filePath: const Value('konten/foto.png')));
+    // Data skema v2: catatan + tag + lampiran + tautan, koleksi ↔ ide.
+    final note = await p.db.into(p.db.notes).insertReturning(NotesCompanion.insert(
+        title: const Value('Resep kopi'), body: const Value('- [ ] beli gula aren\n**penting**'),
+        isPinned: const Value(true)));
+    await p.db.into(p.db.noteTags).insert(NoteTagsCompanion.insert(noteId: note.id, tag: 'resep'));
+    await p.db.into(p.db.noteAttachments).insert(NoteAttachmentsCompanion.insert(
+        noteId: note.id, filePath: 'catatan/struk.pdf', fileName: 'struk.pdf'));
+    await p.db.into(p.db.noteLinks).insert(
+        NoteLinksCompanion.insert(noteId: note.id, entityType: 'product', entityId: kaos));
+    final item = await p.db.into(p.db.watchlistItems).insertReturning(WatchlistItemsCompanion.insert(
+        title: 'Atomic Habits', type: const Value('buku'), status: const Value('sedang'),
+        progress: const Value(120), progressTotal: const Value(320), rating: const Value(5)));
+    await p.db.into(p.db.watchlistItemIdeas).insert(WatchlistItemIdeasCompanion.insert(itemId: item.id, ideaId: idea.id));
+    await File('${p.attachments.path}/catatan/struk.pdf').create(recursive: true)
+        .then((f) => f.writeAsBytes([37, 80, 68, 70]));
     await File('${p.attachments.path}/produk/kaos.jpg').create(recursive: true)
         .then((f) => f.writeAsBytes([1, 2, 3]));
     await File('${p.attachments.path}/konten/foto.png').create(recursive: true)
@@ -88,7 +104,7 @@ void main() {
     final names = zip.files.map((f) => f.name).toSet();
     expect(names, containsAll(['data.json', 'meta.json', 'attachments/produk/kaos.jpg', 'attachments/konten/foto.png']));
     final meta = jsonDecode(utf8.decode(zip.findFile('meta.json')!.content)) as Map;
-    expect(meta['schema_version'], 1);
+    expect(meta['schema_version'], currentSchemaVersion);
     expect(meta.containsKey('app_version'), isTrue);
 
     final parsed = await b.backup.parse(file);
@@ -98,6 +114,10 @@ void main() {
     expect(await dump(b.db), await dump(a.db), reason: 'semua tabel identik termasuk stok & status');
     expect(await File('${b.attachments.path}/produk/kaos.jpg').readAsBytes(), [1, 2, 3]);
     expect((await File('${b.attachments.path}/konten/foto.png').readAsBytes()).length, 1000);
+    expect(await File('${b.attachments.path}/catatan/struk.pdf').readAsBytes(), [37, 80, 68, 70]);
+    // Indeks pencarian dibangun ulang di HP B.
+    final hits = await b.db.customSelect("SELECT note_id FROM notes_fts WHERE notes_fts MATCH 'gula*'").get();
+    expect(hits, hasLength(1));
 
     // Database hasil restore tetap berfungsi normal (trigger aktif lagi).
     final kaos = (await b.db.select(b.db.products).get()).single;

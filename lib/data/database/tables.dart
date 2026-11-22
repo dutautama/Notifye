@@ -235,3 +235,83 @@ class ContentProductLinks extends Table {
   @override
   Set<Column<Object>> get primaryKey => {ideaId, productId};
 }
+
+// ================================================================ skema v2
+// ---------------------------------------------------------------- catatan
+@DataClassName('Note')
+class Notes extends Table with UuidPk, Timestamps, SoftDelete {
+  TextColumn get title => text().withDefault(const Constant(''))();
+  TextColumn get body => text().withDefault(const Constant(''))(); // markdown ringan
+  TextColumn get category => text().nullable()();
+  BoolColumn get isPinned => boolean().withDefault(const Constant(false))();
+  BoolColumn get isArchived => boolean().withDefault(const Constant(false))();
+}
+
+/// Tag catatan (huruf kecil). Satu baris per pasangan catatan–tag.
+@DataClassName('NoteTag')
+class NoteTags extends Table {
+  TextColumn get noteId => text().references(Notes, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tag => text().withLength(min: 1, max: 50)();
+  @override
+  Set<Column<Object>> get primaryKey => {noteId, tag};
+}
+
+@DataClassName('NoteAttachment')
+class NoteAttachments extends Table with UuidPk, SoftDelete {
+  TextColumn get noteId => text().references(Notes, #id, onDelete: KeyAction.cascade)();
+  TextColumn get filePath => text()(); // relatif ke folder attachments/
+  TextColumn get fileName => text()();
+  TextColumn get mime => text().nullable()();
+  IntColumn get sizeBytes => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// Tautan catatan ke entitas lain (polimorfik; integritas dijaga aplikasi).
+@DataClassName('NoteLink')
+class NoteLinks extends Table {
+  TextColumn get noteId => text().references(Notes, #id, onDelete: KeyAction.cascade)();
+  TextColumn get entityType => text().check(entityType.isIn(const [
+        'product',
+        'customer',
+        'supplier',
+        'transaction',
+        'content_idea',
+        'watchlist_item',
+      ]))();
+  TextColumn get entityId => text()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  @override
+  Set<Column<Object>> get primaryKey => {noteId, entityType, entityId};
+}
+
+// ------------------------------------------------- bacaan & tontonan
+@DataClassName('WatchlistItem')
+class WatchlistItems extends Table with UuidPk, Timestamps, SoftDelete {
+  TextColumn get type => text()
+      .withDefault(const Constant('lainnya'))
+      .check(type.isIn(const ['buku', 'artikel', 'video', 'film', 'serial', 'podcast', 'lainnya']))();
+  TextColumn get title => text().withLength(min: 1, max: 300)();
+  TextColumn get creator => text().nullable()(); // penulis / sumber / channel
+  TextColumn get url => text().nullable()();
+  TextColumn get platform => text().nullable()();
+  TextColumn get status => text()
+      .withDefault(const Constant('ingin'))
+      .check(status.isIn(const ['ingin', 'sedang', 'selesai', 'ditunda', 'drop']))();
+  IntColumn get rating => integer().nullable().check(rating.isBetweenValues(1, 5))();
+  TextColumn get review => text().nullable()();
+  DateTimeColumn get startedAt => dateTime().nullable()();
+  DateTimeColumn get finishedAt => dateTime().nullable()();
+  IntColumn get progress => integer().nullable().check(progress.isBiggerOrEqualValue(0))();
+  IntColumn get progressTotal => integer().nullable().check(progressTotal.isBiggerOrEqualValue(0))();
+  TextColumn get coverUrl => text().nullable()();
+  TextColumn get coverPath => text().nullable()(); // relatif ke attachments/
+}
+
+@DataClassName('WatchlistItemIdea')
+class WatchlistItemIdeas extends Table {
+  TextColumn get itemId => text().references(WatchlistItems, #id, onDelete: KeyAction.cascade)();
+  TextColumn get ideaId => text().references(ContentIdeas, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  @override
+  Set<Column<Object>> get primaryKey => {itemId, ideaId};
+}

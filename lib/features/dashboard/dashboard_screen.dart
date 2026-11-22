@@ -27,6 +27,11 @@ class DashboardScreen extends ConsumerWidget {
         title: const Text('Beranda'),
         actions: [
           IconButton(
+            tooltip: 'Laporan',
+            icon: const Icon(Icons.bar_chart_outlined),
+            onPressed: () => context.push('/laporan'),
+          ),
+          IconButton(
             tooltip: 'Muat ulang',
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(dashboardProvider),

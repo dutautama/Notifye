@@ -31,9 +31,9 @@ class MainShell extends StatelessWidget {
             label: 'Konten',
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Laporan',
+            icon: Icon(Icons.sticky_note_2_outlined),
+            selectedIcon: Icon(Icons.sticky_note_2),
+            label: 'Catatan',
           ),
           NavigationDestination(icon: Icon(Icons.more_horiz), label: 'Lainnya'),
         ],

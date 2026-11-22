@@ -3,7 +3,7 @@ description: "UsahaKonten — manajemen usaha jasa/digital & konten media sosial
 publish_to: 'none'
 
 # Format: <versi>+<build>. CI otomatis menimpa nomor build dengan run_number.
-version: 1.0.0+1
+version: 1.1.0+1
 
 environment:
   sdk: ^3.14.0

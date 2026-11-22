@@ -20,6 +20,8 @@ import '../features/content/content_home_screen.dart';
 import '../features/content/idea_detail_screen.dart';
 import '../features/content/idea_form_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
+import '../features/notes/note_editor_screen.dart';
+import '../features/notes/notes_screen.dart';
 import '../features/reports/reports_screen.dart';
 import '../features/settings/backup_screen.dart';
 import '../features/settings/business_profile_screen.dart';
@@ -62,6 +64,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/backup', builder: (_, _) => const BackupScreen()),
       GoRoute(path: '/profil-usaha', builder: (_, _) => const BusinessProfileScreen()),
       GoRoute(path: '/printer', builder: (_, _) => const PrinterScreen()),
+      GoRoute(path: '/laporan', builder: (_, _) => const ReportsScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => MainShell(shell: shell),
         branches: [
@@ -154,7 +157,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           StatefulShellBranch(
-            routes: [GoRoute(path: '/laporan', builder: (_, _) => const ReportsScreen())],
+            routes: [
+              GoRoute(
+                path: '/catatan',
+                builder: (_, _) => const NotesScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'baru',
+                    builder: (_, st) => NoteEditorScreen(
+                      linkType: st.uri.queryParameters['type'],
+                      linkId: st.uri.queryParameters['id'],
+                    ),
+                  ),
+                  GoRoute(path: ':id', builder: (_, st) => NoteEditorScreen(noteId: st.pathParameters['id'])),
+                ],
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [GoRoute(path: '/lainnya', builder: (_, _) => const SettingsScreen())],

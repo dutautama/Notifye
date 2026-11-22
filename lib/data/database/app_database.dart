@@ -26,6 +26,13 @@ const backupTableOrder = <String>[
   'content_schedules',
   'content_publications',
   'content_product_links',
+  // v2
+  'notes',
+  'note_tags',
+  'note_attachments',
+  'note_links',
+  'watchlist_items',
+  'watchlist_item_ideas',
 ];
 
 @DriftDatabase(
@@ -46,6 +53,12 @@ const backupTableOrder = <String>[
     ContentSchedules,
     ContentPublications,
     ContentProductLinks,
+    Notes,
+    NoteTags,
+    NoteAttachments,
+    NoteLinks,
+    WatchlistItems,
+    WatchlistItemIdeas,
   ],
 )
 class AppDatabase extends _$AppDatabase {

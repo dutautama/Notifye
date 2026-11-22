@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import '../../data/database/app_database.dart';
 import '../../data/database/migrations/migration_strategy.dart';
+import '../../data/database/migrations/schema_v2.dart';
 
 const backupFormat = 'usahakonten-backup';
 
@@ -44,6 +45,12 @@ const restoreOrder = <String>[
   'content_schedules',
   'content_ideas',
   'content_product_links',
+  'notes',
+  'note_tags',
+  'note_attachments',
+  'note_links',
+  'watchlist_items',
+  'watchlist_item_ideas',
 ];
 
 /// Serialisasi seluruh database ⇄ JSON (data.json) dan restore Replace/Merge.
@@ -163,6 +170,10 @@ class BackupCodec {
 
         if (mode == RestoreMode.merge) {
           await _applyStockForMergedTransactions(newTrxIds, preexistingProducts);
+        }
+
+        for (final sql in rebuildNotesFts) {
+          await _db.customStatement(sql);
         }
 
         final violations = await _db.customSelect('PRAGMA foreign_key_check').get();

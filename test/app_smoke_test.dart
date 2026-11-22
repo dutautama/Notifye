@@ -27,7 +27,7 @@ void main() {
     addTearDown(tester.view.reset);
 
     final db = AppDatabase(NativeDatabase.memory());
-    late String productId, trxId, ideaId, customerId;
+    late String productId, trxId, ideaId, customerId, noteId;
     await tester.runAsync(() async {
       productId = newId();
       await db.into(db.products).insert(ProductsCompanion.insert(
@@ -49,6 +49,12 @@ void main() {
           ideaId: idea.id, title: 'Folder Drive', url: const Value('https://drive.google.com/x')));
       final s = await db.into(db.contentSchedules).insertReturning(ContentSchedulesCompanion.insert(
           ideaId: idea.id, platform: 'instagram', scheduledAt: DateTime.now().add(const Duration(hours: 5))));
+      final note = await db.into(db.notes).insertReturning(NotesCompanion.insert(
+          title: const Value('Catatan ukuran kaos pelanggan'), body: const Value('## Ukuran\n- [ ] L\n- [x] **XL**'),
+          isPinned: const Value(true)));
+      noteId = note.id;
+      await db.into(db.noteTags).insert(NoteTagsCompanion.insert(noteId: note.id, tag: 'pelanggan'));
+      await db.into(db.noteLinks).insert(NoteLinksCompanion.insert(noteId: note.id, entityType: 'product', entityId: productId));
       await db.into(db.contentPublications).insert(ContentPublicationsCompanion.insert(
           ideaId: idea.id, scheduleId: Value(s.id), platform: 'tiktok', reach: const Value(12000), likes: const Value(900)));
     });
@@ -94,6 +100,9 @@ void main() {
     await visit('/konten/ide/$ideaId', 'Produk/jasa yang dipromosikan');
     await visit('/konten/ide/$ideaId/ubah', 'Ubah ide konten');
     await visit('/laporan', 'Omzet');
+    await visit('/catatan', 'Catatan ukuran kaos');
+    await visit('/catatan/baru', 'Kategori');
+    await visit('/catatan/$noteId', 'XL');
     await visit('/lainnya', 'Profil Usaha');
     await visit('/profil-usaha', 'Nama usaha');
     await visit('/printer', 'Lebar kertas');
@@ -127,6 +136,8 @@ void main() {
     await visit('/usaha/hutang-piutang', 'Budi Santoso');
     await visit('/konten/ide/$ideaId', 'Produk/jasa yang dipromosikan');
     await visit('/laporan', 'Omzet');
+    await visit('/catatan', 'Catatan ukuran kaos');
+    await visit('/catatan/$noteId', 'XL');
     await visit('/lainnya', 'Profil Usaha');
     // Lepas widget & provider dulu agar stream drift berhenti, baru tutup database.
     await tester.pumpWidget(const SizedBox());

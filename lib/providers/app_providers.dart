@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/database/app_database.dart';
+import '../data/repositories/catatan_repository.dart';
 import '../data/repositories/hutang_repository.dart';
 import '../data/repositories/invoice_repository.dart';
+import '../data/repositories/koleksi_repository.dart';
 import '../data/repositories/meta_repository.dart';
 import '../data/repositories/konten_repository.dart';
 import '../data/repositories/pelanggan_repository.dart';
@@ -49,3 +51,7 @@ final reportServiceProvider = Provider(
     invoice: ref.watch(invoiceRepositoryProvider),
   ),
 );
+
+final catatanRepositoryProvider = Provider((ref) => CatatanRepository(ref.watch(databaseProvider)));
+
+final koleksiRepositoryProvider = Provider((ref) => KoleksiRepository(ref.watch(databaseProvider)));
