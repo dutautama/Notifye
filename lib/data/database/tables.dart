@@ -72,20 +72,15 @@ class Categories extends Table with UuidPk, Timestamps, SoftDelete {
 
 @DataClassName('Product')
 class Products extends Table with UuidPk, Timestamps, SoftDelete {
-  TextColumn get categoryId => text()
-      .nullable()
-      .references(Categories, #id, onDelete: KeyAction.setNull)();
-  TextColumn get kind => text()
-      .withDefault(const Constant('jasa'))
-      .check(kind.isIn(const ['barang', 'jasa', 'digital']))();
+  TextColumn get categoryId => text().nullable().references(Categories, #id, onDelete: KeyAction.setNull)();
+  TextColumn get kind =>
+      text().withDefault(const Constant('jasa')).check(kind.isIn(const ['barang', 'jasa', 'digital']))();
   TextColumn get sku => text().nullable()();
   TextColumn get barcode => text().nullable()();
   TextColumn get name => text().withLength(min: 1, max: 200)();
   TextColumn get unit => text().withDefault(const Constant('pcs'))();
-  RealColumn get sellPrice =>
-      real().withDefault(const Constant(0)).check(sellPrice.isBiggerOrEqualValue(0))();
-  RealColumn get buyPrice =>
-      real().withDefault(const Constant(0)).check(buyPrice.isBiggerOrEqualValue(0))();
+  RealColumn get sellPrice => real().withDefault(const Constant(0)).check(sellPrice.isBiggerOrEqualValue(0))();
+  RealColumn get buyPrice => real().withDefault(const Constant(0)).check(buyPrice.isBiggerOrEqualValue(0))();
   BoolColumn get trackStock => boolean().withDefault(const Constant(false))();
   RealColumn get stock => real().withDefault(const Constant(0))();
   RealColumn get minStock => real().withDefault(const Constant(0))();
@@ -120,38 +115,28 @@ class Transactions extends Table with UuidPk, Timestamps, SoftDelete {
   TextColumn get number => text().unique()();
   DateTimeColumn get trxDate => dateTime()();
   DateTimeColumn get dueDate => dateTime().nullable()();
-  TextColumn get customerId => text()
-      .nullable()
-      .references(Customers, #id, onDelete: KeyAction.restrict)();
-  TextColumn get supplierId => text()
-      .nullable()
-      .references(Suppliers, #id, onDelete: KeyAction.restrict)();
+  TextColumn get customerId => text().nullable().references(Customers, #id, onDelete: KeyAction.restrict)();
+  TextColumn get supplierId => text().nullable().references(Suppliers, #id, onDelete: KeyAction.restrict)();
   RealColumn get subtotal => real().withDefault(const Constant(0))();
-  RealColumn get discount =>
-      real().withDefault(const Constant(0)).check(discount.isBiggerOrEqualValue(0))();
-  RealColumn get tax =>
-      real().withDefault(const Constant(0)).check(tax.isBiggerOrEqualValue(0))();
+  RealColumn get discount => real().withDefault(const Constant(0)).check(discount.isBiggerOrEqualValue(0))();
+  RealColumn get tax => real().withDefault(const Constant(0)).check(tax.isBiggerOrEqualValue(0))();
   RealColumn get total => real().withDefault(const Constant(0))();
   RealColumn get paidAmount => real().withDefault(const Constant(0))();
-  TextColumn get status => text()
-      .withDefault(const Constant('belum'))
-      .check(status.isIn(const ['lunas', 'sebagian', 'belum']))();
+  TextColumn get status =>
+      text().withDefault(const Constant('belum')).check(status.isIn(const ['lunas', 'sebagian', 'belum']))();
   TextColumn get notes => text().nullable()();
 
   @override
   List<String> get customConstraints => const [
-        "CHECK (NOT (type = 'sale' AND supplier_id IS NOT NULL))",
-        "CHECK (NOT (type = 'purchase' AND customer_id IS NOT NULL))",
-      ];
+    "CHECK (NOT (type = 'sale' AND supplier_id IS NOT NULL))",
+    "CHECK (NOT (type = 'purchase' AND customer_id IS NOT NULL))",
+  ];
 }
 
 @DataClassName('TrxItem')
 class TransactionItems extends Table with UuidPk, Timestamps {
-  TextColumn get transactionId =>
-      text().references(Transactions, #id, onDelete: KeyAction.cascade)();
-  TextColumn get productId => text()
-      .nullable()
-      .references(Products, #id, onDelete: KeyAction.setNull)();
+  TextColumn get transactionId => text().references(Transactions, #id, onDelete: KeyAction.cascade)();
+  TextColumn get productId => text().nullable().references(Products, #id, onDelete: KeyAction.setNull)();
   TextColumn get name => text()(); // snapshot nama saat transaksi
   RealColumn get qty => real().check(qty.isBiggerThanValue(0))();
   RealColumn get price => real().check(price.isBiggerOrEqualValue(0))();
@@ -160,8 +145,7 @@ class TransactionItems extends Table with UuidPk, Timestamps {
 
 @DataClassName('Payment')
 class Payments extends Table with UuidPk, Timestamps, SoftDelete {
-  TextColumn get transactionId =>
-      text().references(Transactions, #id, onDelete: KeyAction.cascade)();
+  TextColumn get transactionId => text().references(Transactions, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get payDate => dateTime()();
   RealColumn get amount => real().check(amount.isBiggerThanValue(0))();
   TextColumn get method => text()
@@ -173,19 +157,12 @@ class Payments extends Table with UuidPk, Timestamps, SoftDelete {
 /// Riwayat keluar/masuk stok (diisi trigger & penyesuaian manual).
 @DataClassName('StockMovement')
 class StockMovements extends Table with UuidPk {
-  TextColumn get productId =>
-      text().references(Products, #id, onDelete: KeyAction.cascade)();
-  TextColumn get transactionId => text()
-      .nullable()
-      .references(Transactions, #id, onDelete: KeyAction.setNull)();
+  TextColumn get productId => text().references(Products, #id, onDelete: KeyAction.cascade)();
+  TextColumn get transactionId => text().nullable().references(Transactions, #id, onDelete: KeyAction.setNull)();
   RealColumn get qtyChange => real()();
-  TextColumn get reason => text().check(reason.isIn(const [
-        'penjualan',
-        'pembelian',
-        'penyesuaian',
-        'batal_penjualan',
-        'batal_pembelian',
-      ]))();
+  TextColumn get reason => text().check(
+    reason.isIn(const ['penjualan', 'pembelian', 'penyesuaian', 'batal_penjualan', 'batal_pembelian']),
+  )();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
@@ -196,11 +173,9 @@ class ContentIdeas extends Table with UuidPk, Timestamps, SoftDelete {
   TextColumn get title => text().withLength(min: 1, max: 300)();
   TextColumn get description => text().nullable()();
   TextColumn get platforms => text().withDefault(const Constant('[]'))(); // JSON array
-  TextColumn get status => text()
-      .withDefault(const Constant('ide'))
-      .check(status.isIn(const ['ide', 'produksi', 'review', 'publish']))();
-  IntColumn get priority =>
-      integer().withDefault(const Constant(2)).check(priority.isBetweenValues(1, 3))();
+  TextColumn get status =>
+      text().withDefault(const Constant('ide')).check(status.isIn(const ['ide', 'produksi', 'review', 'publish']))();
+  IntColumn get priority => integer().withDefault(const Constant(2)).check(priority.isBetweenValues(1, 3))();
   TextColumn get pillar => text().nullable()();
   TextColumn get tags => text().withDefault(const Constant('[]'))(); // JSON array
   DateTimeColumn get dueDate => dateTime().nullable()();
@@ -209,8 +184,7 @@ class ContentIdeas extends Table with UuidPk, Timestamps, SoftDelete {
 
 @DataClassName('ContentAsset')
 class ContentAssets extends Table with UuidPk, Timestamps, SoftDelete {
-  TextColumn get ideaId =>
-      text().references(ContentIdeas, #id, onDelete: KeyAction.cascade)();
+  TextColumn get ideaId => text().references(ContentIdeas, #id, onDelete: KeyAction.cascade)();
   TextColumn get kind => text()
       .withDefault(const Constant('link'))
       .check(kind.isIn(const ['link', 'gdrive', 'video', 'gambar', 'audio', 'dokumen', 'naskah']))();
@@ -220,38 +194,30 @@ class ContentAssets extends Table with UuidPk, Timestamps, SoftDelete {
   TextColumn get notes => text().nullable()();
 
   @override
-  List<String> get customConstraints => const [
-        "CHECK (url IS NOT NULL OR file_path IS NOT NULL OR kind = 'naskah')",
-      ];
+  List<String> get customConstraints => const ["CHECK (url IS NOT NULL OR file_path IS NOT NULL OR kind = 'naskah')"];
 }
 
 @DataClassName('ContentSchedule')
 class ContentSchedules extends Table with UuidPk, Timestamps, SoftDelete {
-  TextColumn get ideaId =>
-      text().references(ContentIdeas, #id, onDelete: KeyAction.cascade)();
+  TextColumn get ideaId => text().references(ContentIdeas, #id, onDelete: KeyAction.cascade)();
   TextColumn get platform => text()();
   DateTimeColumn get scheduledAt => dateTime()();
-  TextColumn get status => text()
-      .withDefault(const Constant('terjadwal'))
-      .check(status.isIn(const ['terjadwal', 'tayang', 'batal']))();
+  TextColumn get status =>
+      text().withDefault(const Constant('terjadwal')).check(status.isIn(const ['terjadwal', 'tayang', 'batal']))();
   TextColumn get notes => text().nullable()();
 }
 
 @DataClassName('ContentPublication')
 class ContentPublications extends Table with UuidPk, Timestamps, SoftDelete {
-  TextColumn get ideaId =>
-      text().references(ContentIdeas, #id, onDelete: KeyAction.cascade)();
-  TextColumn get scheduleId => text()
-      .nullable()
-      .references(ContentSchedules, #id, onDelete: KeyAction.setNull)();
+  TextColumn get ideaId => text().references(ContentIdeas, #id, onDelete: KeyAction.cascade)();
+  TextColumn get scheduleId => text().nullable().references(ContentSchedules, #id, onDelete: KeyAction.setNull)();
   TextColumn get platform => text()();
   TextColumn get postUrl => text().nullable()();
   DateTimeColumn get publishedAt => dateTime().withDefault(currentDateAndTime)();
   IntColumn get views => integer().withDefault(const Constant(0)).check(views.isBiggerOrEqualValue(0))();
   IntColumn get reach => integer().withDefault(const Constant(0)).check(reach.isBiggerOrEqualValue(0))();
   IntColumn get likes => integer().withDefault(const Constant(0)).check(likes.isBiggerOrEqualValue(0))();
-  IntColumn get comments =>
-      integer().withDefault(const Constant(0)).check(comments.isBiggerOrEqualValue(0))();
+  IntColumn get comments => integer().withDefault(const Constant(0)).check(comments.isBiggerOrEqualValue(0))();
   IntColumn get shares => integer().withDefault(const Constant(0)).check(shares.isBiggerOrEqualValue(0))();
   IntColumn get saves => integer().withDefault(const Constant(0)).check(saves.isBiggerOrEqualValue(0))();
   IntColumn get followersGained => integer().withDefault(const Constant(0))();
@@ -263,10 +229,8 @@ class ContentPublications extends Table with UuidPk, Timestamps, SoftDelete {
 /// Relasi banyak-ke-banyak ide konten ↔ produk/jasa.
 @DataClassName('ContentProductLink')
 class ContentProductLinks extends Table {
-  TextColumn get ideaId =>
-      text().references(ContentIdeas, #id, onDelete: KeyAction.cascade)();
-  TextColumn get productId =>
-      text().references(Products, #id, onDelete: KeyAction.cascade)();
+  TextColumn get ideaId => text().references(ContentIdeas, #id, onDelete: KeyAction.cascade)();
+  TextColumn get productId => text().references(Products, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   @override
   Set<Column<Object>> get primaryKey => {ideaId, productId};

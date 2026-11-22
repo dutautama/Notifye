@@ -39,11 +39,12 @@ class StatCard extends StatelessWidget {
                   Icon(icon, size: 18, color: accent),
                   const SizedBox(width: 6),
                   Expanded(
-                    child: Text(label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: text.labelMedium
-                            ?.copyWith(color: scheme.onSurfaceVariant)),
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant),
+                    ),
                   ),
                 ],
               ),
@@ -51,16 +52,16 @@ class StatCard extends StatelessWidget {
               FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
-                child: Text(value,
-                    style: text.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                child: Text(value, style: text.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
               ),
               if (caption != null) ...[
                 const SizedBox(height: 2),
-                Text(caption!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style:
-                        text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+                Text(
+                  caption!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                ),
               ],
             ],
           ),

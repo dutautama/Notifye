@@ -54,12 +54,7 @@ class StoredPin {
   final List<int> hash;
   final int iterations;
 
-  String encode() => jsonEncode({
-        'v': 1,
-        'salt': base64Encode(salt),
-        'hash': base64Encode(hash),
-        'iter': iterations,
-      });
+  String encode() => jsonEncode({'v': 1, 'salt': base64Encode(salt), 'hash': base64Encode(hash), 'iter': iterations});
 
   static StoredPin decode(String raw) {
     final j = jsonDecode(raw) as Map<String, dynamic>;

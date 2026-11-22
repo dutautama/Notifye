@@ -17,6 +17,8 @@ import '../features/business/transactions/trx_detail_screen.dart';
 import '../features/business/transactions/trx_form_screen.dart';
 import '../features/business/transactions/trx_list_screen.dart';
 import '../features/content/content_home_screen.dart';
+import '../features/content/idea_detail_screen.dart';
+import '../features/content/idea_form_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/reports/reports_screen.dart';
 import '../features/settings/backup_screen.dart';
@@ -63,52 +65,100 @@ final routerProvider = Provider<GoRouter>((ref) {
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => MainShell(shell: shell),
         branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/beranda', builder: (_, _) => const DashboardScreen()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/usaha',
-              builder: (_, _) => const BusinessHomeScreen(),
-              routes: [
-                GoRoute(path: 'produk', builder: (_, _) => const ProductListScreen(), routes: [
-                  GoRoute(path: 'pilih', builder: (_, _) => const ProductListScreen(pickMode: true)),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/beranda', builder: (_, _) => const DashboardScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/usaha',
+                builder: (_, _) => const BusinessHomeScreen(),
+                routes: [
                   GoRoute(
-                      path: 'baru',
-                      builder: (_, st) => ProductFormScreen(initialBarcode: st.extra as String?)),
-                  GoRoute(
-                      path: ':id', builder: (_, st) => ProductFormScreen(productId: st.pathParameters['id'])),
-                ]),
-                GoRoute(path: 'kategori', builder: (_, _) => const CategoriesScreen()),
-                for (final kind in PartyKind.values)
-                  GoRoute(path: kind.path, builder: (_, _) => PartyListScreen(kind: kind), routes: [
-                    GoRoute(path: 'pilih', builder: (_, _) => PartyListScreen(kind: kind, pickMode: true)),
-                    GoRoute(path: 'baru', builder: (_, _) => PartyFormScreen(kind: kind)),
-                    GoRoute(
+                    path: 'produk',
+                    builder: (_, _) => const ProductListScreen(),
+                    routes: [
+                      GoRoute(path: 'pilih', builder: (_, _) => const ProductListScreen(pickMode: true)),
+                      GoRoute(
+                        path: 'baru',
+                        builder: (_, st) => ProductFormScreen(initialBarcode: st.extra as String?),
+                      ),
+                      GoRoute(
                         path: ':id',
-                        builder: (_, st) => PartyFormScreen(kind: kind, partyId: st.pathParameters['id'])),
-                  ]),
-                GoRoute(path: 'transaksi', builder: (_, _) => const TrxListScreen(), routes: [
+                        builder: (_, st) => ProductFormScreen(productId: st.pathParameters['id']),
+                      ),
+                    ],
+                  ),
+                  GoRoute(path: 'kategori', builder: (_, _) => const CategoriesScreen()),
+                  for (final kind in PartyKind.values)
+                    GoRoute(
+                      path: kind.path,
+                      builder: (_, _) => PartyListScreen(kind: kind),
+                      routes: [
+                        GoRoute(
+                          path: 'pilih',
+                          builder: (_, _) => PartyListScreen(kind: kind, pickMode: true),
+                        ),
+                        GoRoute(
+                          path: 'baru',
+                          builder: (_, _) => PartyFormScreen(kind: kind),
+                        ),
+                        GoRoute(
+                          path: ':id',
+                          builder: (_, st) => PartyFormScreen(kind: kind, partyId: st.pathParameters['id']),
+                        ),
+                      ],
+                    ),
                   GoRoute(
-                      path: 'baru',
-                      builder: (_, st) =>
-                          TrxFormScreen(type: st.uri.queryParameters['jenis'] == 'purchase' ? 'purchase' : 'sale')),
+                    path: 'transaksi',
+                    builder: (_, _) => const TrxListScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'baru',
+                        builder: (_, st) =>
+                            TrxFormScreen(type: st.uri.queryParameters['jenis'] == 'purchase' ? 'purchase' : 'sale'),
+                      ),
+                      GoRoute(
+                        path: ':id',
+                        builder: (_, st) => TrxDetailScreen(transactionId: st.pathParameters['id']!),
+                      ),
+                    ],
+                  ),
+                  GoRoute(path: 'hutang-piutang', builder: (_, _) => const DebtListScreen()),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/konten',
+                builder: (_, _) => const ContentHomeScreen(),
+                routes: [
                   GoRoute(
-                      path: ':id', builder: (_, st) => TrxDetailScreen(transactionId: st.pathParameters['id']!)),
-                ]),
-                GoRoute(path: 'hutang-piutang', builder: (_, _) => const DebtListScreen()),
-              ],
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/konten', builder: (_, _) => const ContentHomeScreen()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/laporan', builder: (_, _) => const ReportsScreen()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/lainnya', builder: (_, _) => const SettingsScreen()),
-          ]),
+                    path: 'ide/baru',
+                    builder: (_, st) => IdeaFormScreen(initialStatus: st.uri.queryParameters['status']),
+                  ),
+                  GoRoute(
+                    path: 'ide/:id',
+                    builder: (_, st) => IdeaDetailScreen(ideaId: st.pathParameters['id']!),
+                    routes: [
+                      GoRoute(
+                        path: 'ubah',
+                        builder: (_, st) => IdeaFormScreen(ideaId: st.pathParameters['id']),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/laporan', builder: (_, _) => const ReportsScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/lainnya', builder: (_, _) => const SettingsScreen())],
+          ),
         ],
       ),
     ],

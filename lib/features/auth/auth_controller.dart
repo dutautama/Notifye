@@ -20,10 +20,7 @@ class AuthController extends Notifier<AuthStatus> {
 
   @override
   AuthStatus build() {
-    _lifecycle = AppLifecycleListener(
-      onHide: () => _pausedAt = DateTime.now(),
-      onShow: _onResume,
-    );
+    _lifecycle = AppLifecycleListener(onHide: () => _pausedAt = DateTime.now(), onShow: _onResume);
     ref.onDispose(() => _lifecycle?.dispose());
     unawaited(_init());
     return AuthStatus.loading;
@@ -36,9 +33,7 @@ class AuthController extends Notifier<AuthStatus> {
   void _onResume() {
     final paused = _pausedAt;
     _pausedAt = null;
-    if (state == AuthStatus.unlocked &&
-        paused != null &&
-        DateTime.now().difference(paused) >= autoLockAfter) {
+    if (state == AuthStatus.unlocked && paused != null && DateTime.now().difference(paused) >= autoLockAfter) {
       state = AuthStatus.locked;
     }
   }
@@ -68,5 +63,4 @@ class AuthController extends Notifier<AuthStatus> {
   void markReset() => state = AuthStatus.needsSetup;
 }
 
-final authControllerProvider =
-    NotifierProvider<AuthController, AuthStatus>(AuthController.new);
+final authControllerProvider = NotifierProvider<AuthController, AuthStatus>(AuthController.new);

@@ -51,8 +51,7 @@ class BackupCodec {
   BackupCodec(this._db);
   final AppDatabase _db;
 
-  Map<String, TableInfo> get _tables =>
-      {for (final t in _db.allTables) t.actualTableName: t};
+  Map<String, TableInfo> get _tables => {for (final t in _db.allTables) t.actualTableName: t};
 
   // ------------------------------------------------------------- export
   Future<Map<String, Object?>> exportData() async {
@@ -80,8 +79,7 @@ class BackupCodec {
 
   // ------------------------------------------------------------ restore
   /// Validasi isi data.json; lempar [BackupFormatException] berbahasa Indonesia.
-  static ({int schemaVersion, String source, Map<String, dynamic> tables}) validate(
-      Object? decoded) {
+  static ({int schemaVersion, String source, Map<String, dynamic> tables}) validate(Object? decoded) {
     if (decoded is! Map<String, dynamic>) {
       throw BackupFormatException('File bukan backup UsahaKonten (format JSON tidak dikenal).');
     }
@@ -94,8 +92,9 @@ class BackupCodec {
     }
     if (version > currentSchemaVersion) {
       throw BackupFormatException(
-          'Backup dibuat oleh versi aplikasi yang lebih baru (skema v$version). '
-          'Perbarui aplikasi dulu, lalu ulangi restore.');
+        'Backup dibuat oleh versi aplikasi yang lebih baru (skema v$version). '
+        'Perbarui aplikasi dulu, lalu ulangi restore.',
+      );
     }
     final tables = decoded['tables'];
     if (tables is! Map<String, dynamic>) {
@@ -118,9 +117,7 @@ class BackupCodec {
     final v = validate(decoded);
     final isSupabase = v.source == 'supabase';
     final preexistingProducts = mode == RestoreMode.merge
-        ? (await _db.customSelect('SELECT id FROM products').get())
-            .map((r) => r.read<String>('id'))
-            .toSet()
+        ? (await _db.customSelect('SELECT id FROM products').get()).map((r) => r.read<String>('id')).toSet()
         : <String>{};
 
     final inserted = <String, int>{};
@@ -172,8 +169,9 @@ class BackupCodec {
         if (violations.isNotEmpty) {
           final t = violations.first.data['table'];
           throw BackupFormatException(
-              'Backup tidak konsisten: ada data yang merujuk data lain yang hilang (tabel $t). '
-              'Restore dibatalkan, data di HP tidak berubah.');
+            'Backup tidak konsisten: ada data yang merujuk data lain yang hilang (tabel $t). '
+            'Restore dibatalkan, data di HP tidak berubah.',
+          );
         }
       });
     } finally {
@@ -191,16 +189,17 @@ class BackupCodec {
 
   /// Merge: transaksi baru dari HP lain ikut mengubah stok produk yang SUDAH ada
   /// di HP ini (produk baru dari backup sudah membawa stok akhirnya sendiri).
-  Future<void> _applyStockForMergedTransactions(
-      List<String> trxIds, Set<String> preexistingProducts) async {
+  Future<void> _applyStockForMergedTransactions(List<String> trxIds, Set<String> preexistingProducts) async {
     if (trxIds.isEmpty || preexistingProducts.isEmpty) return;
     for (final trxId in trxIds) {
-      final items = await _db.customSelect(
-        'SELECT ti.product_id AS pid, ti.qty AS qty, t.type AS type '
-        'FROM transaction_items ti JOIN transactions t ON t.id = ti.transaction_id '
-        'WHERE ti.transaction_id = ? AND ti.product_id IS NOT NULL',
-        variables: [Variable.withString(trxId)],
-      ).get();
+      final items = await _db
+          .customSelect(
+            'SELECT ti.product_id AS pid, ti.qty AS qty, t.type AS type '
+            'FROM transaction_items ti JOIN transactions t ON t.id = ti.transaction_id '
+            'WHERE ti.transaction_id = ? AND ti.product_id IS NOT NULL',
+            variables: [Variable.withString(trxId)],
+          )
+          .get();
       for (final it in items) {
         final pid = it.read<String>('pid');
         if (!preexistingProducts.contains(pid)) continue;
@@ -208,38 +207,37 @@ class BackupCodec {
         final delta = (isSale ? -1 : 1) * it.read<double>('qty');
         final n = await _db.customUpdate(
           'UPDATE products SET stock = stock + ?, updated_at = ? WHERE id = ? AND track_stock = 1',
-          variables: [
-            Variable.withReal(delta),
-            Variable.withDateTime(DateTime.now()),
-            Variable.withString(pid),
-          ],
+          variables: [Variable.withReal(delta), Variable.withDateTime(DateTime.now()), Variable.withString(pid)],
         );
         if (n > 0) {
-          await _db.into(_db.stockMovements).insert(StockMovementsCompanion.insert(
-                productId: pid,
-                transactionId: Value(trxId),
-                qtyChange: delta,
-                reason: isSale ? 'penjualan' : 'pembelian',
-                notes: const Value('Digabung dari backup'),
-              ));
+          await _db
+              .into(_db.stockMovements)
+              .insert(
+                StockMovementsCompanion.insert(
+                  productId: pid,
+                  transactionId: Value(trxId),
+                  qtyChange: delta,
+                  reason: isSale ? 'penjualan' : 'pembelian',
+                  notes: const Value('Digabung dari backup'),
+                ),
+              );
         }
       }
     }
   }
 
   static Variable<Object> _variable(Object? v) => switch (v) {
-        null => const Variable(null),
-        int i => Variable.withInt(i),
-        double d => Variable.withReal(d),
-        String s => Variable.withString(s),
-        _ => Variable.withString(v.toString()),
-      };
+    null => const Variable(null),
+    int i => Variable.withInt(i),
+    double d => Variable.withReal(d),
+    String s => Variable.withString(s),
+    _ => Variable.withString(v.toString()),
+  };
 
   /// Sesuaikan satu baris (dari backup lokal ATAU export Supabase) dengan kolom
   /// tabel lokal: buang kolom asing/generated, ubah tipe (ISO → detik Unix,
   /// bool → 0/1, array → JSON).
-  static Map<String, Object?> normalizeRow(TableInfo table, Map<String, dynamic> raw,
-      {bool fromSupabase = false}) {
+  static Map<String, Object?> normalizeRow(TableInfo table, Map<String, dynamic> raw, {bool fromSupabase = false}) {
     final src = Map<String, dynamic>.of(raw);
     if (fromSupabase) _adaptSupabaseRow(table.actualTableName, src);
 
@@ -265,9 +263,7 @@ class BackupCodec {
         final storagePath = row.remove('storage_path');
         if (storagePath != null) {
           // File di Supabase Storage tidak ikut terekspor → simpan jejaknya di catatan.
-          row['notes'] = [row['notes'], 'File cloud lama: $storagePath']
-              .whereType<String>()
-              .join('\n');
+          row['notes'] = [row['notes'], 'File cloud lama: $storagePath'].whereType<String>().join('\n');
           if (row['url'] == null) row['kind'] = 'naskah';
         }
     }

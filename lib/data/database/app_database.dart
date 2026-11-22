@@ -28,24 +28,26 @@ const backupTableOrder = <String>[
   'content_product_links',
 ];
 
-@DriftDatabase(tables: [
-  Meta,
-  BusinessProfile,
-  DocCounters,
-  Categories,
-  Products,
-  Customers,
-  Suppliers,
-  Transactions,
-  TransactionItems,
-  Payments,
-  StockMovements,
-  ContentIdeas,
-  ContentAssets,
-  ContentSchedules,
-  ContentPublications,
-  ContentProductLinks,
-])
+@DriftDatabase(
+  tables: [
+    Meta,
+    BusinessProfile,
+    DocCounters,
+    Categories,
+    Products,
+    Customers,
+    Suppliers,
+    Transactions,
+    TransactionItems,
+    Payments,
+    StockMovements,
+    ContentIdeas,
+    ContentAssets,
+    ContentSchedules,
+    ContentPublications,
+    ContentProductLinks,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openDefault());
 

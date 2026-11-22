@@ -11,6 +11,7 @@ import '../../widgets/error_view.dart';
 import '../../widgets/mini_bar_chart.dart';
 import '../../widgets/section_card.dart';
 import '../../widgets/stat_card.dart';
+import '../../widgets/two_column_grid.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -38,8 +39,7 @@ class DashboardScreen extends ConsumerWidget {
           // Saat refresh, tetap tampilkan data lama (skipLoadingOnRefresh default).
           data: (s) => _DashboardBody(summary: s),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) =>
-              ErrorView(error: e, onRetry: () => ref.invalidate(dashboardProvider)),
+          error: (e, _) => ErrorView(error: e, onRetry: () => ref.invalidate(dashboardProvider)),
         ),
       ),
     );
@@ -70,39 +70,40 @@ class _DashboardBody extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
         Text('$_greeting 👋', style: text.titleMedium),
-        Text(Fmt.date(DateTime.now()),
-            style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        Text(Fmt.date(DateTime.now()), style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
         const SizedBox(height: 16),
 
         // --- KPI ---------------------------------------------------------
-        _Grid(children: [
-          StatCard(
-            label: 'Omzet hari ini',
-            value: Fmt.rupiah(s.salesToday),
-            caption: '${s.trxCountToday} transaksi',
-            icon: Icons.today,
-          ),
-          StatCard(
-            label: 'Omzet bulan ini',
-            value: Fmt.rupiah(s.salesThisMonth),
-            caption: '${s.trxCountThisMonth} transaksi',
-            icon: Icons.calendar_month,
-          ),
-          StatCard(
-            label: 'Piutang',
-            value: Fmt.rupiah(s.receivableTotal),
-            caption: '${s.receivableCount} belum lunas',
-            icon: Icons.call_received,
-            color: Colors.orange.shade700,
-          ),
-          StatCard(
-            label: 'Hutang',
-            value: Fmt.rupiah(s.payableTotal),
-            caption: '${s.payableCount} belum lunas',
-            icon: Icons.call_made,
-            color: scheme.error,
-          ),
-        ]),
+        TwoColumnGrid(
+          children: [
+            StatCard(
+              label: 'Omzet hari ini',
+              value: Fmt.rupiah(s.salesToday),
+              caption: '${s.trxCountToday} transaksi',
+              icon: Icons.today,
+            ),
+            StatCard(
+              label: 'Omzet bulan ini',
+              value: Fmt.rupiah(s.salesThisMonth),
+              caption: '${s.trxCountThisMonth} transaksi',
+              icon: Icons.calendar_month,
+            ),
+            StatCard(
+              label: 'Piutang',
+              value: Fmt.rupiah(s.receivableTotal),
+              caption: '${s.receivableCount} belum lunas',
+              icon: Icons.call_received,
+              color: Colors.orange.shade700,
+            ),
+            StatCard(
+              label: 'Hutang',
+              value: Fmt.rupiah(s.payableTotal),
+              caption: '${s.payableCount} belum lunas',
+              icon: Icons.call_made,
+              color: scheme.error,
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
 
         // --- Grafik 7 hari ------------------------------------------------
@@ -122,9 +123,9 @@ class _DashboardBody extends StatelessWidget {
           icon: Icons.alarm,
           child: s.dueDebts.isEmpty
               ? const EmptyHint('Tidak ada hutang/piutang yang jatuh tempo.')
-              : Column(children: [
-                  for (final d in s.dueDebts.take(5)) _DebtTile(debt: d, today: s.today),
-                ]),
+              : Column(
+                  children: [for (final d in s.dueDebts.take(5)) _DebtTile(debt: d, today: s.today)],
+                ),
         ),
         const SizedBox(height: 12),
 
@@ -134,19 +135,20 @@ class _DashboardBody extends StatelessWidget {
           icon: Icons.inventory_2_outlined,
           child: s.lowStock.isEmpty
               ? const EmptyHint('Semua stok aman.')
-              : Column(children: [
-                  for (final p in s.lowStock.take(5))
-                    ListTile(
-                      dense: true,
-                      title: Text(p.name),
-                      subtitle: Text('Minimal ${Fmt.number(p.minStock)} ${p.unit}'),
-                      trailing: Text(
-                        '${Fmt.number(p.stock)} ${p.unit}',
-                        style: TextStyle(
-                            color: scheme.error, fontWeight: FontWeight.bold),
+              : Column(
+                  children: [
+                    for (final p in s.lowStock.take(5))
+                      ListTile(
+                        dense: true,
+                        title: Text(p.name),
+                        subtitle: Text('Minimal ${Fmt.number(p.minStock)} ${p.unit}'),
+                        trailing: Text(
+                          '${Fmt.number(p.stock)} ${p.unit}',
+                          style: TextStyle(color: scheme.error, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                ]),
+                  ],
+                ),
         ),
         const SizedBox(height: 12),
 
@@ -154,10 +156,7 @@ class _DashboardBody extends StatelessWidget {
         SectionCard(
           title: 'Jadwal konten 7 hari ke depan',
           icon: Icons.event_note,
-          trailing: TextButton(
-            onPressed: () => context.go('/konten'),
-            child: const Text('Lihat'),
-          ),
+          trailing: TextButton(onPressed: () => context.go('/konten'), child: const Text('Lihat')),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -168,10 +167,7 @@ class _DashboardBody extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     for (final e in s.contentStatusCounts.entries)
-                      Chip(
-                        visualDensity: VisualDensity.compact,
-                        label: Text('${_statusLabel(e.key)}: ${e.value}'),
-                      ),
+                      Chip(visualDensity: VisualDensity.compact, label: Text('${_statusLabel(e.key)}: ${e.value}')),
                   ],
                 ),
               ),
@@ -182,10 +178,10 @@ class _DashboardBody extends StatelessWidget {
                   ListTile(
                     dense: true,
                     leading: const Icon(Icons.play_circle_outline),
-                    title: Text(sc.ideaTitle,
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                    title: Text(sc.ideaTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
                     subtitle: Text(
-                        '${_platformLabel(sc.schedule.platform)} • ${Fmt.dateTime(sc.schedule.scheduledAt)}'),
+                      '${_platformLabel(sc.schedule.platform)} • ${Fmt.dateTime(sc.schedule.scheduledAt)}',
+                    ),
                   ),
             ],
           ),
@@ -195,50 +191,22 @@ class _DashboardBody extends StatelessWidget {
   }
 
   static String _statusLabel(String s) => switch (s) {
-        'ide' => 'Ide',
-        'produksi' => 'Produksi',
-        'review' => 'Review',
-        'publish' => 'Publish',
-        _ => s,
-      };
+    'ide' => 'Ide',
+    'produksi' => 'Produksi',
+    'review' => 'Review',
+    'publish' => 'Publish',
+    _ => s,
+  };
 
   static String _platformLabel(String p) => switch (p) {
-        'instagram' => 'Instagram',
-        'tiktok' => 'TikTok',
-        'youtube' => 'YouTube',
-        'facebook' => 'Facebook',
-        'x' => 'X',
-        'threads' => 'Threads',
-        _ => p,
-      };
-}
-
-/// Grid 2 kolom yang tingginya mengikuti isi.
-class _Grid extends StatelessWidget {
-  const _Grid({required this.children});
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = <Widget>[];
-    for (var i = 0; i < children.length; i += 2) {
-      rows.add(IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: children[i]),
-            const SizedBox(width: 12),
-            Expanded(
-                child: i + 1 < children.length
-                    ? children[i + 1]
-                    : const SizedBox()),
-          ],
-        ),
-      ));
-      if (i + 2 < children.length) rows.add(const SizedBox(height: 12));
-    }
-    return Column(children: rows);
-  }
+    'instagram' => 'Instagram',
+    'tiktok' => 'TikTok',
+    'youtube' => 'YouTube',
+    'facebook' => 'Facebook',
+    'x' => 'X',
+    'threads' => 'Threads',
+    _ => p,
+  };
 }
 
 class _DebtTile extends StatelessWidget {
@@ -249,13 +217,13 @@ class _DebtTile extends StatelessWidget {
   Future<void> _remind(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final due = debt.dueDate == null ? '' : ' yang jatuh tempo ${Fmt.date(debt.dueDate)}';
-    final msg = 'Halo ${debt.partyName}, kami ingin mengingatkan tagihan '
+    final msg =
+        'Halo ${debt.partyName}, kami ingin mengingatkan tagihan '
         '${debt.number} sebesar ${Fmt.rupiah(debt.remaining)}$due. '
         'Terima kasih 🙏';
     final ok = await WhatsAppService.send(phone: debt.partyPhone, message: msg);
     if (!ok) {
-      messenger.showSnackBar(
-          const SnackBar(content: Text('Tidak dapat membuka WhatsApp')));
+      messenger.showSnackBar(const SnackBar(content: Text('Tidak dapat membuka WhatsApp')));
     }
   }
 
@@ -269,8 +237,7 @@ class _DebtTile extends StatelessWidget {
         debt.isReceivable ? Icons.call_received : Icons.call_made,
         color: debt.isReceivable ? Colors.orange.shade700 : scheme.error,
       ),
-      title: Text('${debt.partyName} • ${debt.number}',
-          maxLines: 1, overflow: TextOverflow.ellipsis),
+      title: Text('${debt.partyName} • ${debt.number}', maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
         '${debt.isReceivable ? 'Piutang' : 'Hutang'} • '
         '${overdue ? 'TERLAMBAT sejak' : 'jatuh tempo'} ${Fmt.date(debt.dueDate)}',
@@ -279,8 +246,7 @@ class _DebtTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(Fmt.rupiah(debt.remaining),
-              style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(Fmt.rupiah(debt.remaining), style: const TextStyle(fontWeight: FontWeight.w600)),
           if (debt.isReceivable)
             IconButton(
               tooltip: 'Ingatkan via WhatsApp',

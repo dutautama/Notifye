@@ -24,8 +24,9 @@ class PrinterService {
   Future<void> _ensureReady() async {
     if (!await PrintBluetoothThermal.isPermissionBluetoothGranted) {
       throw PrinterException(
-          'Izin "Perangkat di sekitar" belum diberikan. Izinkan lalu coba lagi '
-          '(Setelan HP → Aplikasi → UsahaKonten → Izin).');
+        'Izin "Perangkat di sekitar" belum diberikan. Izinkan lalu coba lagi '
+        '(Setelan HP → Aplikasi → UsahaKonten → Izin).',
+      );
     }
     if (!await PrintBluetoothThermal.bluetoothEnabled) {
       throw PrinterException('Bluetooth HP mati. Nyalakan Bluetooth lalu coba lagi.');

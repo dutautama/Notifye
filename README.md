@@ -1,29 +1,27 @@
 # UsahaKonten
 
-Aplikasi Android **100% offline** untuk manajemen usaha jasa/digital (produk, transaksi, stok,
-hutang/piutang, invoice, laporan) dan manajemen konten media sosial ala Notion
-(ide → produksi → review → publish, aset, kalender, reach), saling terhubung.
+Aplikasi Android **100% offline** untuk usaha jasa/digital dan manajemen konten media sosial.
+Data tersimpan **hanya di HP** (SQLite), dikunci **PIN 6 digit**, tanpa akun & tanpa internet.
 
-- Data tersimpan **hanya di HP** (SQLite). Tanpa akun, tanpa server, tanpa internet.
-- Dikunci dengan **PIN 6 digit**.
-- Pindah HP / cadangan: menu **Backup & Restore** (file `.zip` → Google Drive/WhatsApp).
-- APK dibuat otomatis oleh GitHub Actions setiap ada perubahan di branch `main`.
+## Fitur
+| Menu | Isi |
+|---|---|
+| **Beranda** | Omzet hari ini/bulan ini, grafik 7 hari, piutang & hutang, jatuh tempo (+ tagih via WhatsApp), stok menipis, jadwal konten |
+| **Usaha** | Penjualan & pembelian (stok otomatis), riwayat transaksi, pembayaran/DP, batal & pulihkan, hutang/piutang, produk & jasa (barcode, gambar, stok opname), kategori, pelanggan, supplier |
+| **Invoice & struk** | Invoice PDF → WhatsApp/email/Drive; struk printer thermal Bluetooth 58/80 mm |
+| **Konten** | Papan ide (Ide → Produksi → Review → Publish), aset produksi (link Drive/video/naskah/file), produk yang dipromosikan, kalender bulanan/mingguan, publikasi + views/reach/engagement/leads |
+| **Laporan** | Penjualan, item terlaris, pembelian, stok, hutang/piutang, performa konten → Excel & PDF |
+| **Lainnya** | Profil usaha (logo, info rekening), printer, Backup & Restore (zip ke Drive, otomatis mingguan), Ubah PIN, Reset aplikasi |
 
-## Instal (dari HP)
-
-1. Buka halaman **Releases** repo ini (atau link yang dikirim Claude) → build terbaru →
-   bagian **Assets** → ketuk `UsahaKonten-...apk`.
-2. Buka file yang terunduh → jika diminta, **Setelan → Izinkan dari sumber ini** → **Instal**.
-3. Buka aplikasi → buat **PIN 6 digit** (masukkan 2x).
-
-Update berikutnya cukup instal APK baru di atas yang lama — data tetap ada.
+## Instal / update (dari HP)
+1. Buka **Releases** repo ini (atau link dari Claude) → build terbaru → **Assets** → ketuk file `.apk`.
+2. Buka file → izinkan *Instal aplikasi tidak dikenal* bila diminta → **Instal**.
+3. Pertama kali: buat PIN 6 digit. Update berikutnya cukup instal di atas versi lama — data tetap ada.
 
 ## Penting
+- **Backup rutin** lewat Lainnya → Backup & Restore → *Kirim backup terakhir ke Drive*.
+- **PIN tidak bisa dipulihkan.** Lupa PIN = reset aplikasi lalu restore dari backup.
+- **Uninstall menghapus semua data** di HP.
+- Instal APK **hanya** dari halaman Releases repo ini.
 
-- **PIN tidak bisa dipulihkan.** Lupa PIN = reset aplikasi (semua data terhapus) lalu restore dari backup.
-- **Uninstall aplikasi menghapus semua data.** Selalu backup sebelum ganti/reset HP.
-
-## Dokumen lain
-- [docs/ARSITEKTUR.md](docs/ARSITEKTUR.md) — arsitektur, skema data, rencana langkah
-- [docs/export-supabase-ke-json.sql](docs/export-supabase-ke-json.sql) — export data lama dari Supabase (arsip)
-- [CLAUDE.md](CLAUDE.md) — aturan proyek untuk sesi pengembangan berikutnya
+Dokumen: [Panduan uji](docs/PANDUAN-UJI.md) · [Arsitektur](docs/ARSITEKTUR.md) · [Aturan proyek](CLAUDE.md)

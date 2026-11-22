@@ -30,10 +30,14 @@ class AttachmentImage extends StatelessWidget {
         if (!snap.hasData) return placeholder;
         return ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: Image.file(snap.data!,
-              width: size, height: size, fit: BoxFit.cover,
-              cacheWidth: (size * 3).round(),
-              errorBuilder: (_, _, _) => placeholder),
+          child: Image.file(
+            snap.data!,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            cacheWidth: (size * 3).round(),
+            errorBuilder: (_, _, _) => placeholder,
+          ),
         );
       },
     );

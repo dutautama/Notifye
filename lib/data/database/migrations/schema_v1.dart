@@ -11,7 +11,8 @@
 const _now = "CAST(strftime('%s','now') AS INTEGER)";
 
 /// UUID v4 acak di dalam SQL (untuk baris stock_movements dari trigger).
-const _uuidSql = "lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || "
+const _uuidSql =
+    "lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || "
     "substr(lower(hex(randomblob(2))), 2) || '-' || "
     "substr('89ab', 1 + (abs(random()) % 4), 1) || substr(lower(hex(randomblob(2))), 2) || '-' || "
     "lower(hex(randomblob(6)))";
@@ -19,7 +20,8 @@ const _uuidSql = "lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) 
 /// Hitung ulang subtotal, total, paid_amount, status untuk transaksi [idExpr].
 String _recalc(String idExpr) {
   const sub = 'COALESCE((SELECT SUM(subtotal) FROM transaction_items WHERE transaction_id = transactions.id), 0)';
-  const paid = 'COALESCE((SELECT SUM(amount) FROM payments WHERE transaction_id = transactions.id AND deleted_at IS NULL), 0)';
+  const paid =
+      'COALESCE((SELECT SUM(amount) FROM payments WHERE transaction_id = transactions.id AND deleted_at IS NULL), 0)';
   const total = 'MAX($sub - discount + tax, 0)';
   return '''
     UPDATE transactions SET

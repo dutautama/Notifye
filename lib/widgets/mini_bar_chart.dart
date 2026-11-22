@@ -41,24 +41,20 @@ class MiniBarChart extends StatelessWidget {
                       const SizedBox(height: 2),
                       Flexible(
                         child: FractionallySizedBox(
-                          heightFactor: maxVal == 0
-                              ? 0.03
-                              : (data[i].omzet / maxVal).clamp(0.03, 1.0),
+                          heightFactor: maxVal == 0 ? 0.03 : (data[i].omzet / maxVal).clamp(0.03, 1.0),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: i == data.length - 1
-                                  ? scheme.primary
-                                  : scheme.primary.withValues(alpha: 0.45),
-                              borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(6)),
+                              color: i == data.length - 1 ? scheme.primary : scheme.primary.withValues(alpha: 0.45),
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(_days[data[i].date.weekday - 1],
-                          style: text.labelSmall
-                              ?.copyWith(color: scheme.onSurfaceVariant)),
+                      Text(
+                        _days[data[i].date.weekday - 1],
+                        style: text.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
                     ],
                   ),
                 ),

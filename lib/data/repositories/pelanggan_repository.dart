@@ -22,8 +22,9 @@ class PelangganRepository {
 
   Future<String> saveCustomer(CustomersCompanion data) async {
     if (data.id.present) {
-      await (_db.update(_db.customers)..where((c) => c.id.equals(data.id.value)))
-          .write(data.copyWith(updatedAt: Value(DateTime.now())));
+      await (_db.update(
+        _db.customers,
+      )..where((c) => c.id.equals(data.id.value))).write(data.copyWith(updatedAt: Value(DateTime.now())));
       return data.id.value;
     }
     final id = newId();
@@ -31,9 +32,9 @@ class PelangganRepository {
     return id;
   }
 
-  Future<void> deleteCustomer(String id) =>
-      (_db.update(_db.customers)..where((c) => c.id.equals(id))).write(
-          CustomersCompanion(deletedAt: Value(DateTime.now()), updatedAt: Value(DateTime.now())));
+  Future<void> deleteCustomer(String id) => (_db.update(_db.customers)..where((c) => c.id.equals(id))).write(
+    CustomersCompanion(deletedAt: Value(DateTime.now()), updatedAt: Value(DateTime.now())),
+  );
 
   // ------------------------------------------------------------ supplier
   Stream<List<Supplier>> watchSuppliers({String search = ''}) {
@@ -50,8 +51,9 @@ class PelangganRepository {
 
   Future<String> saveSupplier(SuppliersCompanion data) async {
     if (data.id.present) {
-      await (_db.update(_db.suppliers)..where((s) => s.id.equals(data.id.value)))
-          .write(data.copyWith(updatedAt: Value(DateTime.now())));
+      await (_db.update(
+        _db.suppliers,
+      )..where((s) => s.id.equals(data.id.value))).write(data.copyWith(updatedAt: Value(DateTime.now())));
       return data.id.value;
     }
     final id = newId();
@@ -59,7 +61,7 @@ class PelangganRepository {
     return id;
   }
 
-  Future<void> deleteSupplier(String id) =>
-      (_db.update(_db.suppliers)..where((s) => s.id.equals(id))).write(
-          SuppliersCompanion(deletedAt: Value(DateTime.now()), updatedAt: Value(DateTime.now())));
+  Future<void> deleteSupplier(String id) => (_db.update(_db.suppliers)..where((s) => s.id.equals(id))).write(
+    SuppliersCompanion(deletedAt: Value(DateTime.now()), updatedAt: Value(DateTime.now())),
+  );
 }

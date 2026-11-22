@@ -56,8 +56,7 @@ class PinService {
     final raw = await _storage.read(key: _kPin);
     if (raw == null) throw StateError('PIN belum dibuat');
     final stored = StoredPin.decode(raw);
-    final hash = await Isolate.run(
-        () => PinHasher.pbkdf2(pin, stored.salt, iterations: stored.iterations));
+    final hash = await Isolate.run(() => PinHasher.pbkdf2(pin, stored.salt, iterations: stored.iterations));
 
     if (PinHasher.constantTimeEquals(hash, stored.hash)) {
       await _resetFailures();
@@ -68,8 +67,7 @@ class PinService {
     final lock = lockoutFor(failures);
     await _storage.write(key: _kFailures, value: '$failures');
     if (lock > Duration.zero) {
-      await _storage.write(
-          key: _kLockedUntil, value: '${t.add(lock).millisecondsSinceEpoch}');
+      await _storage.write(key: _kLockedUntil, value: '${t.add(lock).millisecondsSinceEpoch}');
     }
     return PinWrong(failures, lock);
   }

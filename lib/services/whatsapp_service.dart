@@ -17,11 +17,7 @@ class WhatsAppService {
   /// Mengembalikan false bila nomor tidak valid / WhatsApp tidak bisa dibuka.
   static Future<bool> send({String? phone, required String message}) async {
     final normalized = normalizePhone(phone);
-    final uri = Uri.https(
-      'wa.me',
-      normalized == null ? '/' : '/$normalized',
-      {'text': message},
-    );
+    final uri = Uri.https('wa.me', normalized == null ? '/' : '/$normalized', {'text': message});
     return launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 }

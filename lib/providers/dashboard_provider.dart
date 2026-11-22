@@ -4,12 +4,14 @@ import '../models/dashboard_summary.dart';
 import '../services/dashboard_service.dart';
 import 'app_providers.dart';
 
-final dashboardServiceProvider = Provider<DashboardService>((ref) => DashboardService(
-      transaksi: ref.watch(transaksiRepositoryProvider),
-      hutang: ref.watch(hutangRepositoryProvider),
-      produk: ref.watch(produkRepositoryProvider),
-      konten: ref.watch(kontenRepositoryProvider),
-    ));
+final dashboardServiceProvider = Provider<DashboardService>(
+  (ref) => DashboardService(
+    transaksi: ref.watch(transaksiRepositoryProvider),
+    hutang: ref.watch(hutangRepositoryProvider),
+    produk: ref.watch(produkRepositoryProvider),
+    konten: ref.watch(kontenRepositoryProvider),
+  ),
+);
 
 /// Beranda otomatis dimuat ulang setiap kali ada perubahan di database.
 final dashboardProvider = FutureProvider.autoDispose<DashboardSummary>((ref) {

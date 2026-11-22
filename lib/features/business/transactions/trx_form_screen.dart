@@ -62,8 +62,10 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
     final p = preset ?? await context.push<Product>('/usaha/produk/pilih');
     if (p == null || !mounted) return;
     final price = _isSale ? p.sellPrice : p.buyPrice;
-    final item = await _editItemDialog(DraftItem(productId: p.id, name: p.name, qty: 1, price: price, unit: p.unit),
-        stockInfo: p.trackStock ? 'Stok: ${Fmt.number(p.stock)} ${p.unit}' : null);
+    final item = await _editItemDialog(
+      DraftItem(productId: p.id, name: p.name, qty: 1, price: price, unit: p.unit),
+      stockInfo: p.trackStock ? 'Stok: ${Fmt.number(p.stock)} ${p.unit}' : null,
+    );
     if (item != null) setState(() => addOrMergeItem(_items, item));
   }
 
@@ -131,7 +133,8 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
             name: manual ? name.text.trim() : item.name,
             qty: QtyField.read(qty),
             price: MoneyField.read(price),
-            unit: item.unit)
+            unit: item.unit,
+          )
         : null;
     name.dispose();
     qty.dispose();
@@ -144,12 +147,8 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
     if (p != null) setState(() => _party = p);
   }
 
-  Future<DateTime?> _pickDate(DateTime initial) => showDatePicker(
-        context: context,
-        initialDate: initial,
-        firstDate: DateTime(2020),
-        lastDate: DateTime(2100),
-      );
+  Future<DateTime?> _pickDate(DateTime initial) =>
+      showDatePicker(context: context, initialDate: initial, firstDate: DateTime(2020), lastDate: DateTime(2100));
 
   Future<void> _save() async {
     if (_items.isEmpty) {
@@ -159,27 +158,33 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
     final t = _totals;
     final paid = _payFull ? t.total : MoneyField.read(_paid).clamp(0, t.total).toDouble();
     if (!_payFull && paid < t.total && _party == null && _isSale) {
-      final ok = await confirmDialog(context,
-          title: 'Tanpa nama pelanggan?',
-          message: 'Transaksi belum lunas akan menjadi piutang "Umum". Sebaiknya pilih pelanggan agar mudah ditagih.',
-          ok: 'Tetap simpan');
+      final ok = await confirmDialog(
+        context,
+        title: 'Tanpa nama pelanggan?',
+        message: 'Transaksi belum lunas akan menjadi piutang "Umum". Sebaiknya pilih pelanggan agar mudah ditagih.',
+        ok: 'Tetap simpan',
+      );
       if (!ok) return;
     }
     setState(() => _saving = true);
     try {
-      final trx = await ref.read(transaksiRepositoryProvider).createTransaction(TrxInput(
-            type: widget.type,
-            items: [for (final i in _items) i.toInput()],
-            trxDate: _date,
-            dueDate: paid < t.total ? (_due ?? _date.add(const Duration(days: 7))) : null,
-            customerId: _isSale ? _party?.id : null,
-            supplierId: _isSale ? null : _party?.id,
-            discount: t.discount,
-            tax: t.tax,
-            notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
-            initialPayment: paid,
-            paymentMethod: _method,
-          ));
+      final trx = await ref
+          .read(transaksiRepositoryProvider)
+          .createTransaction(
+            TrxInput(
+              type: widget.type,
+              items: [for (final i in _items) i.toInput()],
+              trxDate: _date,
+              dueDate: paid < t.total ? (_due ?? _date.add(const Duration(days: 7))) : null,
+              customerId: _isSale ? _party?.id : null,
+              supplierId: _isSale ? null : _party?.id,
+              discount: t.discount,
+              tax: t.tax,
+              notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+              initialPayment: paid,
+              paymentMethod: _method,
+            ),
+          );
       if (!mounted) return;
       context.pushReplacement('/usaha/transaksi/${trx.id}');
     } catch (e) {
@@ -202,49 +207,64 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
         children: [
           Card(
-            child: Column(children: [
-              ListTile(
-                leading: Icon(_partyKind.icon),
-                title: Text(_party?.name ?? '${_partyKind.label}: Umum'),
-                subtitle: Text(_party == null ? 'Ketuk untuk memilih' : (_party!.phone ?? '')),
-                trailing: _party == null
-                    ? const Icon(Icons.chevron_right)
-                    : IconButton(
-                        tooltip: 'Hapus pilihan',
-                        icon: const Icon(Icons.close),
-                        onPressed: () => setState(() => _party = null)),
-                onTap: _pickParty,
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.event),
-                title: Text('Tanggal: ${Fmt.date(_date)}'),
-                onTap: () async {
-                  final d = await _pickDate(_date);
-                  if (d != null) setState(() => _date = d);
-                },
-              ),
-            ]),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(_partyKind.icon),
+                  title: Text(_party?.name ?? '${_partyKind.label}: Umum'),
+                  subtitle: Text(_party == null ? 'Ketuk untuk memilih' : (_party!.phone ?? '')),
+                  trailing: _party == null
+                      ? const Icon(Icons.chevron_right)
+                      : IconButton(
+                          tooltip: 'Hapus pilihan',
+                          icon: const Icon(Icons.close),
+                          onPressed: () => setState(() => _party = null),
+                        ),
+                  onTap: _pickParty,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.event),
+                  title: Text('Tanggal: ${Fmt.date(_date)}'),
+                  onTap: () async {
+                    final d = await _pickDate(_date);
+                    if (d != null) setState(() => _date = d);
+                  },
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 12),
+          Text('Item (${_items.length})', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
           Row(
             children: [
-              Text('Item', style: Theme.of(context).textTheme.titleMedium),
-              const Spacer(),
-              TextButton.icon(onPressed: _addManual, icon: const Icon(Icons.edit_note), label: const Text('Manual')),
-              FilledButton.tonalIcon(
-                style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
-                onPressed: _addProduct,
-                icon: const Icon(Icons.add),
-                label: const Text('Produk'),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+                  onPressed: _addProduct,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Produk'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+                  onPressed: _addManual,
+                  icon: const Icon(Icons.edit_note),
+                  label: const Text('Manual'),
+                ),
               ),
             ],
           ),
           if (_items.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
-              child: Text('Belum ada item. Tambah dari daftar produk, pindai barcode, atau item manual.',
-                  textAlign: TextAlign.center),
+              child: Text(
+                'Belum ada item. Tambah dari daftar produk, pindai barcode, atau item manual.',
+                textAlign: TextAlign.center,
+              ),
             ),
           for (var i = 0; i < _items.length; i++)
             Card(
@@ -252,14 +272,17 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
               child: ListTile(
                 title: Text(_items[i].name),
                 subtitle: Text('${QtyField.format(_items[i].qty)} ${_items[i].unit} × ${Fmt.rupiah(_items[i].price)}'),
-                trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Text(Fmt.rupiah(_items[i].subtotal), style: const TextStyle(fontWeight: FontWeight.w600)),
-                  IconButton(
-                    tooltip: 'Hapus item',
-                    icon: const Icon(Icons.close),
-                    onPressed: () => setState(() => _items.removeAt(i)),
-                  ),
-                ]),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(Fmt.rupiah(_items[i].subtotal), style: const TextStyle(fontWeight: FontWeight.w600)),
+                    IconButton(
+                      tooltip: 'Hapus item',
+                      icon: const Icon(Icons.close),
+                      onPressed: () => setState(() => _items.removeAt(i)),
+                    ),
+                  ],
+                ),
                 onTap: () async {
                   final edited = await _editItemDialog(_items[i], manual: _items[i].productId == null);
                   if (edited != null) setState(() => _items[i] = edited);
@@ -267,23 +290,31 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
               ),
             ),
           const SizedBox(height: 16),
-          Row(children: [
-            Expanded(child: MoneyField(controller: _discount, label: 'Diskon', onChanged: (_) => setState(() {}))),
-            const SizedBox(width: 12),
-            Expanded(child: QtyField(controller: _taxPct, label: 'Pajak (%)', onChanged: (_) => setState(() {}))),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: MoneyField(controller: _discount, label: 'Diskon', onChanged: (_) => setState(() {})),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: QtyField(controller: _taxPct, label: 'Pajak (%)', onChanged: (_) => setState(() {})),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           Card(
             color: scheme.primaryContainer,
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(children: [
-                _row('Subtotal', Fmt.rupiah(t.subtotal)),
-                if (t.discount > 0) _row('Diskon', '- ${Fmt.rupiah(t.discount)}'),
-                if (t.tax > 0) _row('Pajak', Fmt.rupiah(t.tax)),
-                const Divider(),
-                _row('TOTAL', Fmt.rupiah(t.total), bold: true),
-              ]),
+              child: Column(
+                children: [
+                  _row('Subtotal', Fmt.rupiah(t.subtotal)),
+                  if (t.discount > 0) _row('Diskon', '- ${Fmt.rupiah(t.discount)}'),
+                  if (t.tax > 0) _row('Pajak', Fmt.rupiah(t.tax)),
+                  const Divider(),
+                  _row('TOTAL', Fmt.rupiah(t.total), bold: true),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -295,7 +326,11 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
             onChanged: (v) => setState(() => _payFull = v),
           ),
           if (!_payFull) ...[
-            MoneyField(controller: _paid, label: 'Dibayar sekarang (DP)', helper: 'Kosongkan jika belum ada pembayaran'),
+            MoneyField(
+              controller: _paid,
+              label: 'Dibayar sekarang (DP)',
+              helper: 'Kosongkan jika belum ada pembayaran',
+            ),
             const SizedBox(height: 8),
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -308,15 +343,18 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
             ),
           ],
           DropdownButtonFormField<String>(
+            isExpanded: true,
             initialValue: _method,
             decoration: const InputDecoration(labelText: 'Metode pembayaran'),
-            items: [
-              for (final e in paymentMethodLabels.entries) DropdownMenuItem(value: e.key, child: Text(e.value)),
-            ],
+            items: [for (final e in paymentMethodLabels.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
             onChanged: (v) => setState(() => _method = v ?? 'tunai'),
           ),
           const SizedBox(height: 16),
-          TextField(controller: _notes, maxLines: 2, decoration: const InputDecoration(labelText: 'Catatan')),
+          TextField(
+            controller: _notes,
+            maxLines: 2,
+            decoration: const InputDecoration(labelText: 'Catatan'),
+          ),
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -337,7 +375,12 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
     final style = TextStyle(fontWeight: bold ? FontWeight.bold : null, fontSize: bold ? 18 : null);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(children: [Text(label, style: style), const Spacer(), Text(value, style: style)]),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: style)),
+          Text(value, style: style),
+        ],
+      ),
     );
   }
 }

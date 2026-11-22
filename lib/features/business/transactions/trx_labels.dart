@@ -29,7 +29,10 @@ class TrxStatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
-      child: Text(label, style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w600)),
+      child: Text(
+        label,
+        style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w600),
+      ),
     );
   }
 }

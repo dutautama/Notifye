@@ -78,9 +78,11 @@ class _PrinterScreenState extends ConsumerState<PrinterScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           if (_busy) const LinearProgressIndicator(),
-          const Text('1. Nyalakan printer thermal dan pair dulu di Setelan HP → Bluetooth.\n'
-              '2. Ketuk "Cari printer", lalu pilih printer Anda.\n'
-              '3. Ketuk "Cetak halaman tes".'),
+          const Text(
+            '1. Nyalakan printer thermal dan pair dulu di Setelan HP → Bluetooth.\n'
+            '2. Ketuk "Cari printer", lalu pilih printer Anda.\n'
+            '3. Ketuk "Cetak halaman tes".',
+          ),
           const SizedBox(height: 16),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -91,6 +93,7 @@ class _PrinterScreenState extends ConsumerState<PrinterScreen> {
           const Text('Lebar kertas'),
           const SizedBox(height: 8),
           SegmentedButton<int>(
+            showSelectedIcon: false,
             segments: const [
               ButtonSegment(value: 58, label: Text('58 mm')),
               ButtonSegment(value: 80, label: Text('80 mm')),
@@ -129,10 +132,12 @@ class _PrinterScreenState extends ConsumerState<PrinterScreen> {
                 await _svc.savePrinter(p);
                 setState(() => _saved = p);
               },
-              child: Column(children: [
-                for (final p in _paired!)
-                  RadioListTile<String>(value: p.address, title: Text(p.name), subtitle: Text(p.address)),
-              ]),
+              child: Column(
+                children: [
+                  for (final p in _paired!)
+                    RadioListTile<String>(value: p.address, title: Text(p.name), subtitle: Text(p.address)),
+                ],
+              ),
             ),
           ],
         ],

@@ -30,13 +30,15 @@ class InvoiceRepository {
   /// Panggil di dalam transaksi database agar penomoran tidak bentrok.
   Future<String> nextDocNumber(String type, DateTime date) async {
     final period = '${date.year}${date.month.toString().padLeft(2, '0')}';
-    final row = await _db.customSelect(
-      'INSERT INTO doc_counters (doc_type, period, last_no) VALUES (?, ?, 1) '
-      'ON CONFLICT (doc_type, period) DO UPDATE SET last_no = last_no + 1 '
-      'RETURNING last_no',
-      variables: [Variable.withString(type), Variable.withString(period)],
-      readsFrom: {_db.docCounters},
-    ).getSingle();
+    final row = await _db
+        .customSelect(
+          'INSERT INTO doc_counters (doc_type, period, last_no) VALUES (?, ?, 1) '
+          'ON CONFLICT (doc_type, period) DO UPDATE SET last_no = last_no + 1 '
+          'RETURNING last_no',
+          variables: [Variable.withString(type), Variable.withString(period)],
+          readsFrom: {_db.docCounters},
+        )
+        .getSingle();
     final no = row.read<int>('last_no');
     final profile = await getProfile();
     final prefix = type == 'sale' ? profile.invoicePrefix : profile.purchasePrefix;
@@ -44,8 +46,7 @@ class InvoiceRepository {
   }
 
   Future<BusinessProfileRow> getProfile() async {
-    final row = await (_db.select(_db.businessProfile)..where((b) => b.id.equals(1)))
-        .getSingleOrNull();
+    final row = await (_db.select(_db.businessProfile)..where((b) => b.id.equals(1))).getSingleOrNull();
     if (row != null) return row;
     await _db.into(_db.businessProfile).insert(const BusinessProfileCompanion());
     return getProfile();
@@ -54,37 +55,35 @@ class InvoiceRepository {
   Stream<BusinessProfileRow?> watchProfile() =>
       (_db.select(_db.businessProfile)..where((b) => b.id.equals(1))).watchSingleOrNull();
 
-  Future<void> updateProfile(BusinessProfileCompanion data) =>
-      (_db.update(_db.businessProfile)..where((b) => b.id.equals(1)))
-          .write(data.copyWith(updatedAt: Value(DateTime.now())));
+  Future<void> updateProfile(BusinessProfileCompanion data) => (_db.update(
+    _db.businessProfile,
+  )..where((b) => b.id.equals(1))).write(data.copyWith(updatedAt: Value(DateTime.now())));
 
   /// Stream data invoice; ikut berubah saat pembayaran/batal (baris transaksi
   /// diperbarui trigger).
-  Stream<InvoiceData?> watchInvoiceData(String transactionId) =>
-      (_db.select(_db.transactions)..where((t) => t.id.equals(transactionId)))
-          .watchSingleOrNull()
-          .asyncMap((_) => getInvoiceData(transactionId));
+  Stream<InvoiceData?> watchInvoiceData(String transactionId) => (_db.select(
+    _db.transactions,
+  )..where((t) => t.id.equals(transactionId))).watchSingleOrNull().asyncMap((_) => getInvoiceData(transactionId));
 
   Future<InvoiceData?> getInvoiceData(String transactionId) async {
-    final trx = await (_db.select(_db.transactions)..where((t) => t.id.equals(transactionId)))
-        .getSingleOrNull();
+    final trx = await (_db.select(_db.transactions)..where((t) => t.id.equals(transactionId))).getSingleOrNull();
     if (trx == null) return null;
-    final items = await (_db.select(_db.transactionItems)
-          ..where((i) => i.transactionId.equals(transactionId))
-          ..orderBy([(i) => OrderingTerm.asc(i.createdAt)]))
-        .get();
-    final payments = await (_db.select(_db.payments)
-          ..where((p) => p.transactionId.equals(transactionId) & p.deletedAt.isNull())
-          ..orderBy([(p) => OrderingTerm.asc(p.payDate)]))
-        .get();
+    final items =
+        await (_db.select(_db.transactionItems)
+              ..where((i) => i.transactionId.equals(transactionId))
+              ..orderBy([(i) => OrderingTerm.asc(i.createdAt)]))
+            .get();
+    final payments =
+        await (_db.select(_db.payments)
+              ..where((p) => p.transactionId.equals(transactionId) & p.deletedAt.isNull())
+              ..orderBy([(p) => OrderingTerm.asc(p.payDate)]))
+            .get();
     final customer = trx.customerId == null
         ? null
-        : await (_db.select(_db.customers)..where((c) => c.id.equals(trx.customerId!)))
-            .getSingleOrNull();
+        : await (_db.select(_db.customers)..where((c) => c.id.equals(trx.customerId!))).getSingleOrNull();
     final supplier = trx.supplierId == null
         ? null
-        : await (_db.select(_db.suppliers)..where((s) => s.id.equals(trx.supplierId!)))
-            .getSingleOrNull();
+        : await (_db.select(_db.suppliers)..where((s) => s.id.equals(trx.supplierId!))).getSingleOrNull();
     return InvoiceData(
       trx: trx,
       items: items,

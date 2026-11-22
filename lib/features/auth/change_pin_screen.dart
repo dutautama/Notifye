@@ -34,11 +34,13 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
             _error = null;
           });
         } else {
-          setState(() => _error = switch (r) {
-                PinLocked(:final remaining) =>
-                  'Terlalu banyak percobaan. Coba lagi dalam ${remaining.inSeconds + 1} detik.',
-                _ => 'PIN lama salah.',
-              });
+          setState(
+            () => _error = switch (r) {
+              PinLocked(:final remaining) =>
+                'Terlalu banyak percobaan. Coba lagi dalam ${remaining.inSeconds + 1} detik.',
+              _ => 'PIN lama salah.',
+            },
+          );
         }
       case _Step.newPin:
         if (pin == _old) {
@@ -85,9 +87,11 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
               SizedBox(
                 height: 40,
                 child: Center(
-                  child: Text(_error ?? '',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  child: Text(
+                    _error ?? '',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
                 ),
               ),
               PinPad(key: ValueKey(_step), onCompleted: _onPin),

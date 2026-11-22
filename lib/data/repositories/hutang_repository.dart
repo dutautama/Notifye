@@ -30,8 +30,7 @@ class DebtRow {
 
   double get remaining => total - paidAmount;
   bool get isReceivable => kind == 'piutang';
-  bool isOverdue(DateTime today) =>
-      dueDate != null && dueDate!.isBefore(DateTime(today.year, today.month, today.day));
+  bool isOverdue(DateTime today) => dueDate != null && dueDate!.isBefore(DateTime(today.year, today.month, today.day));
 }
 
 /// Hutang & piutang = transaksi yang belum lunas (diturunkan, bukan tabel terpisah).
@@ -43,12 +42,13 @@ class HutangRepository {
     final t = _db.transactions;
     final c = _db.customers;
     final s = _db.suppliers;
-    final q = _db.select(t).join([
-      leftOuterJoin(c, c.id.equalsExp(t.customerId)),
-      leftOuterJoin(s, s.id.equalsExp(t.supplierId)),
-    ])
-      ..where(t.deletedAt.isNull() & t.status.isNotValue('lunas'))
-      ..orderBy([OrderingTerm(expression: t.dueDate, nulls: NullsOrder.last), OrderingTerm.asc(t.trxDate)]);
+    final q =
+        _db.select(t).join([
+            leftOuterJoin(c, c.id.equalsExp(t.customerId)),
+            leftOuterJoin(s, s.id.equalsExp(t.supplierId)),
+          ])
+          ..where(t.deletedAt.isNull() & t.status.isNotValue('lunas'))
+          ..orderBy([OrderingTerm(expression: t.dueDate, nulls: NullsOrder.last), OrderingTerm.asc(t.trxDate)]);
     if (kind == 'piutang') q.where(t.type.equals('sale'));
     if (kind == 'hutang') q.where(t.type.equals('purchase'));
     return q.map((row) {

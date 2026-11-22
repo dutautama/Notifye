@@ -23,8 +23,7 @@ class TrxDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
-  late final Stream<InvoiceData?> _stream =
-      ref.read(invoiceRepositoryProvider).watchInvoiceData(widget.transactionId);
+  late final Stream<InvoiceData?> _stream = ref.read(invoiceRepositoryProvider).watchInvoiceData(widget.transactionId);
   bool _busy = false;
 
   Future<void> _guard(Future<void> Function() fn) async {
@@ -41,28 +40,32 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
   }
 
   Future<void> _sharePdf(InvoiceData d) => _guard(() async {
-        final logo = d.profile.logoPath == null ? null : await AttachmentService.fileFor(d.profile.logoPath!);
-        final bytes = await buildInvoicePdf(d, logoFile: logo);
-        final file = await ShareService.saveTemp('${d.trx.number}.pdf', bytes);
-        final party = d.customer?.name ?? d.supplier?.name;
-        await ShareService.shareFile(file,
-            mime: 'application/pdf',
-            subject: '${d.trx.type == 'sale' ? 'Invoice' : 'PO'} ${d.trx.number} - ${d.profile.name}',
-            text: '${party == null ? '' : 'Halo $party, '}berikut ${d.trx.type == 'sale' ? 'invoice' : 'pesanan'} '
-                '${d.trx.number} sebesar ${Fmt.rupiah(d.trx.total)}.');
-      });
+    final logo = d.profile.logoPath == null ? null : await AttachmentService.fileFor(d.profile.logoPath!);
+    final bytes = await buildInvoicePdf(d, logoFile: logo);
+    final file = await ShareService.saveTemp('${d.trx.number}.pdf', bytes);
+    final party = d.customer?.name ?? d.supplier?.name;
+    await ShareService.shareFile(
+      file,
+      mime: 'application/pdf',
+      subject: '${d.trx.type == 'sale' ? 'Invoice' : 'PO'} ${d.trx.number} - ${d.profile.name}',
+      text:
+          '${party == null ? '' : 'Halo $party, '}berikut ${d.trx.type == 'sale' ? 'invoice' : 'pesanan'} '
+          '${d.trx.number} sebesar ${Fmt.rupiah(d.trx.total)}.',
+    );
+  });
 
   Future<void> _print(InvoiceData d) => _guard(() async {
-        final printer = ref.read(printerServiceProvider);
-        await printer.printBytes(buildReceipt(d, width: await printer.charsPerLine()));
-        if (mounted) showSnack(context, 'Struk dikirim ke printer');
-      });
+    final printer = ref.read(printerServiceProvider);
+    await printer.printBytes(buildReceipt(d, width: await printer.charsPerLine()));
+    if (mounted) showSnack(context, 'Struk dikirim ke printer');
+  });
 
   Future<void> _remind(InvoiceData d) async {
     final remaining = d.trx.total - d.trx.paidAmount;
     final ok = await WhatsAppService.send(
       phone: d.customer?.phone,
-      message: 'Halo ${d.customer?.name ?? ''}, tagihan ${d.trx.number} sebesar ${Fmt.rupiah(remaining)}'
+      message:
+          'Halo ${d.customer?.name ?? ''}, tagihan ${d.trx.number} sebesar ${Fmt.rupiah(remaining)}'
           '${d.trx.dueDate == null ? '' : ' jatuh tempo ${Fmt.date(d.trx.dueDate)}'}.'
           '${d.profile.bankInfo == null ? '' : '\nPembayaran ke: ${d.profile.bankInfo}'}\nTerima kasih 🙏',
     );
@@ -82,30 +85,38 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
           title: const Text('Catat pembayaran'),
           content: Form(
             key: key,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Text('Sisa: ${Fmt.rupiah(remaining)}'),
-              const SizedBox(height: 12),
-              MoneyField(controller: amount, label: 'Jumlah', required: true),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: method,
-                decoration: const InputDecoration(labelText: 'Metode'),
-                items: [
-                  for (final e in paymentMethodLabels.entries) DropdownMenuItem(value: e.key, child: Text(e.value)),
-                ],
-                onChanged: (v) => method = v ?? 'tunai',
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.event),
-                title: Text(Fmt.date(date)),
-                onTap: () async {
-                  final p = await showDatePicker(
-                      context: ctx, initialDate: date, firstDate: DateTime(2020), lastDate: DateTime(2100));
-                  if (p != null) setD(() => date = p);
-                },
-              ),
-            ]),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Sisa: ${Fmt.rupiah(remaining)}'),
+                const SizedBox(height: 12),
+                MoneyField(controller: amount, label: 'Jumlah', required: true),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  initialValue: method,
+                  decoration: const InputDecoration(labelText: 'Metode'),
+                  items: [
+                    for (final e in paymentMethodLabels.entries) DropdownMenuItem(value: e.key, child: Text(e.value)),
+                  ],
+                  onChanged: (v) => method = v ?? 'tunai',
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.event),
+                  title: Text(Fmt.date(date)),
+                  onTap: () async {
+                    final p = await showDatePicker(
+                      context: ctx,
+                      initialDate: date,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (p != null) setD(() => date = p);
+                  },
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
@@ -124,26 +135,32 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
     amount.dispose();
     if (ok != true) return;
     if (value > remaining + 0.5 && mounted) {
-      final go = await confirmDialog(context,
-          title: 'Melebihi sisa tagihan',
-          message: 'Jumlah ${Fmt.rupiah(value)} lebih besar dari sisa ${Fmt.rupiah(remaining)}. Tetap simpan?',
-          ok: 'Simpan');
+      final go = await confirmDialog(
+        context,
+        title: 'Melebihi sisa tagihan',
+        message: 'Jumlah ${Fmt.rupiah(value)} lebih besar dari sisa ${Fmt.rupiah(remaining)}. Tetap simpan?',
+        ok: 'Simpan',
+      );
       if (!go) return;
     }
-    await _guard(() => ref
-        .read(transaksiRepositoryProvider)
-        .addPayment(widget.transactionId, amount: value, method: method, date: date));
+    await _guard(
+      () => ref
+          .read(transaksiRepositoryProvider)
+          .addPayment(widget.transactionId, amount: value, method: method, date: date),
+    );
   }
 
   Future<void> _cancelOrRestore(InvoiceData d) async {
     final cancelled = d.trx.deletedAt != null;
-    final ok = await confirmDialog(context,
-        title: cancelled ? 'Pulihkan transaksi?' : 'Batalkan transaksi?',
-        message: cancelled
-            ? 'Transaksi aktif kembali dan stok disesuaikan lagi.'
-            : 'Transaksi ditandai batal, stok dikembalikan, dan tidak dihitung di laporan. Bisa dipulihkan.',
-        ok: cancelled ? 'Pulihkan' : 'Batalkan transaksi',
-        danger: !cancelled);
+    final ok = await confirmDialog(
+      context,
+      title: cancelled ? 'Pulihkan transaksi?' : 'Batalkan transaksi?',
+      message: cancelled
+          ? 'Transaksi aktif kembali dan stok disesuaikan lagi.'
+          : 'Transaksi ditandai batal, stok dikembalikan, dan tidak dihitung di laporan. Bisa dipulihkan.',
+      ok: cancelled ? 'Pulihkan' : 'Batalkan transaksi',
+      danger: !cancelled,
+    );
     if (!ok) return;
     final repo = ref.read(transaksiRepositoryProvider);
     await _guard(() => cancelled ? repo.restore(d.trx.id) : repo.softDelete(d.trx.id));
@@ -159,7 +176,10 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
         }
         final d = snap.data;
         if (d == null) {
-          return Scaffold(appBar: AppBar(), body: const Center(child: Text('Transaksi tidak ditemukan.')));
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('Transaksi tidak ditemukan.')),
+          );
         }
         final t = d.trx;
         final cancelled = t.deletedAt != null;
@@ -185,71 +205,83 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [
-                      Text(trxTypeLabels[t.type]!, style: Theme.of(context).textTheme.labelLarge),
-                      const Spacer(),
-                      TrxStatusChip(t.status, cancelled: cancelled),
-                    ]),
-                    const SizedBox(height: 8),
-                    Text(Fmt.rupiah(t.total), style: Theme.of(context).textTheme.headlineSmall),
-                    Text('$party • ${Fmt.date(t.trxDate)}'),
-                    if (remaining > 0 && !cancelled) ...[
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: Text(trxTypeLabels[t.type]!, style: Theme.of(context).textTheme.labelLarge)),
+                          TrxStatusChip(t.status, cancelled: cancelled),
+                        ],
+                      ),
                       const SizedBox(height: 8),
-                      Text('Sisa: ${Fmt.rupiah(remaining)}'
+                      Text(Fmt.rupiah(t.total), style: Theme.of(context).textTheme.headlineSmall),
+                      Text('$party • ${Fmt.date(t.trxDate)}'),
+                      if (remaining > 0 && !cancelled) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Sisa: ${Fmt.rupiah(remaining)}'
                           '${t.dueDate == null ? '' : ' • jatuh tempo ${Fmt.date(t.dueDate)}'}',
-                          style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600)),
+                          style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                      if (t.notes != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(t.notes!)),
                     ],
-                    if (t.notes != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(t.notes!)),
-                  ]),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
-              Wrap(spacing: 8, runSpacing: 8, children: [
-                if (remaining > 0 && !cancelled)
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
-                    onPressed: _busy ? null : () => _addPayment(d),
-                    icon: const Icon(Icons.payments_outlined),
-                    label: const Text('Catat bayar'),
-                  ),
-                OutlinedButton.icon(
-                  onPressed: _busy ? null : () => _sharePdf(d),
-                  icon: const Icon(Icons.picture_as_pdf_outlined),
-                  label: const Text('Invoice PDF'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _busy ? null : () => _print(d),
-                  icon: const Icon(Icons.print_outlined),
-                  label: const Text('Cetak struk'),
-                ),
-                if (t.type == 'sale' && remaining > 0 && !cancelled && d.customer?.phone != null)
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (remaining > 0 && !cancelled)
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+                      onPressed: _busy ? null : () => _addPayment(d),
+                      icon: const Icon(Icons.payments_outlined),
+                      label: const Text('Catat bayar'),
+                    ),
                   OutlinedButton.icon(
-                    onPressed: () => _remind(d),
-                    icon: const Icon(Icons.chat_outlined),
-                    label: const Text('Tagih via WA'),
+                    onPressed: _busy ? null : () => _sharePdf(d),
+                    icon: const Icon(Icons.picture_as_pdf_outlined),
+                    label: const Text('Invoice PDF'),
                   ),
-              ]),
+                  OutlinedButton.icon(
+                    onPressed: _busy ? null : () => _print(d),
+                    icon: const Icon(Icons.print_outlined),
+                    label: const Text('Cetak struk'),
+                  ),
+                  if (t.type == 'sale' && remaining > 0 && !cancelled && d.customer?.phone != null)
+                    OutlinedButton.icon(
+                      onPressed: () => _remind(d),
+                      icon: const Icon(Icons.chat_outlined),
+                      label: const Text('Tagih via WA'),
+                    ),
+                ],
+              ),
               const SizedBox(height: 12),
               SectionCard(
                 title: 'Item',
                 icon: Icons.list_alt,
-                child: Column(children: [
-                  for (final i in d.items)
-                    ListTile(
-                      dense: true,
-                      title: Text(i.name),
-                      subtitle: Text('${Fmt.number(i.qty)} × ${Fmt.rupiah(i.price)}'),
-                      trailing: Text(Fmt.rupiah(i.subtotal)),
-                    ),
-                  const Divider(),
-                  _line('Subtotal', Fmt.rupiah(t.subtotal)),
-                  if (t.discount > 0) _line('Diskon', '- ${Fmt.rupiah(t.discount)}'),
-                  if (t.tax > 0) _line('Pajak', Fmt.rupiah(t.tax)),
-                  _line('Total', Fmt.rupiah(t.total), bold: true),
-                  _line('Dibayar', Fmt.rupiah(t.paidAmount)),
-                  const SizedBox(height: 8),
-                ]),
+                child: Column(
+                  children: [
+                    for (final i in d.items)
+                      ListTile(
+                        dense: true,
+                        title: Text(i.name),
+                        subtitle: Text('${Fmt.number(i.qty)} × ${Fmt.rupiah(i.price)}'),
+                        trailing: Text(Fmt.rupiah(i.subtotal)),
+                      ),
+                    const Divider(),
+                    _line('Subtotal', Fmt.rupiah(t.subtotal)),
+                    if (t.discount > 0) _line('Diskon', '- ${Fmt.rupiah(t.discount)}'),
+                    if (t.tax > 0) _line('Pajak', Fmt.rupiah(t.tax)),
+                    _line('Total', Fmt.rupiah(t.total), bold: true),
+                    _line('Dibayar', Fmt.rupiah(t.paidAmount)),
+                    const SizedBox(height: 8),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
               SectionCard(
@@ -257,29 +289,33 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
                 icon: Icons.payments_outlined,
                 child: d.payments.isEmpty
                     ? const EmptyHint('Belum ada pembayaran.')
-                    : Column(children: [
-                        for (final p in d.payments)
-                          ListTile(
-                            dense: true,
-                            title: Text(Fmt.rupiah(p.amount)),
-                            subtitle: Text('${Fmt.date(p.payDate)} • ${paymentMethodLabels[p.method] ?? p.method}'),
-                            trailing: cancelled
-                                ? null
-                                : IconButton(
-                                    tooltip: 'Hapus pembayaran',
-                                    icon: const Icon(Icons.delete_outline),
-                                    onPressed: () async {
-                                      if (await confirmDialog(context,
+                    : Column(
+                        children: [
+                          for (final p in d.payments)
+                            ListTile(
+                              dense: true,
+                              title: Text(Fmt.rupiah(p.amount)),
+                              subtitle: Text('${Fmt.date(p.payDate)} • ${paymentMethodLabels[p.method] ?? p.method}'),
+                              trailing: cancelled
+                                  ? null
+                                  : IconButton(
+                                      tooltip: 'Hapus pembayaran',
+                                      icon: const Icon(Icons.delete_outline),
+                                      onPressed: () async {
+                                        if (await confirmDialog(
+                                          context,
                                           title: 'Hapus pembayaran?',
                                           message: 'Sisa tagihan akan dihitung ulang.',
                                           ok: 'Hapus',
-                                          danger: true)) {
-                                        await _guard(() => ref.read(transaksiRepositoryProvider).deletePayment(p.id));
-                                      }
-                                    },
-                                  ),
-                          ),
-                      ]),
+                                          danger: true,
+                                        )) {
+                                          await _guard(() => ref.read(transaksiRepositoryProvider).deletePayment(p.id));
+                                        }
+                                      },
+                                    ),
+                            ),
+                        ],
+                      ),
               ),
             ],
           ),
@@ -292,7 +328,12 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
     final s = TextStyle(fontWeight: bold ? FontWeight.bold : null);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      child: Row(children: [Text(a, style: s), const Spacer(), Text(b, style: s)]),
+      child: Row(
+        children: [
+          Expanded(child: Text(a, style: s)),
+          Text(b, style: s),
+        ],
+      ),
     );
   }
 }

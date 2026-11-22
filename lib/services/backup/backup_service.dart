@@ -26,12 +26,14 @@ class BackupFileInfo {
 /// Buat/bagikan/pulihkan file backup UsahaKonten-backup-YYYYMMDD-HHmm.zip.
 /// Isi zip: data.json, meta.json, attachments/...
 class BackupService {
-  BackupService(this._db, this._meta,
-      {Future<Directory> Function()? baseDir,
-      Future<Directory> Function()? attachmentsDir,
-      this.now = DateTime.now})
-      : _baseDir = baseDir ?? getApplicationSupportDirectory,
-        _attachmentsDir = attachmentsDir ?? AppResetService.attachmentsDir;
+  BackupService(
+    this._db,
+    this._meta, {
+    Future<Directory> Function()? baseDir,
+    Future<Directory> Function()? attachmentsDir,
+    this.now = DateTime.now,
+  }) : _baseDir = baseDir ?? getApplicationSupportDirectory,
+       _attachmentsDir = attachmentsDir ?? AppResetService.attachmentsDir;
 
   final AppDatabase _db;
   final MetaRepository _meta;
@@ -53,8 +55,7 @@ class BackupService {
   Future<Directory> get manualDir => _dir('manual');
   Future<Directory> get autoDir => _dir('auto');
 
-  static String fileNameFor(DateTime t) =>
-      'UsahaKonten-backup-${DateFormat('yyyyMMdd-HHmm').format(t)}.zip';
+  static String fileNameFor(DateTime t) => 'UsahaKonten-backup-${DateFormat('yyyyMMdd-HHmm').format(t)}.zip';
 
   // ------------------------------------------------------------ export
   Future<File> createBackup({bool auto = false}) async {
@@ -128,10 +129,7 @@ class BackupService {
   /// Semua backup tersimpan di HP, terbaru dulu.
   Future<List<BackupFileInfo>> listBackups({bool includeManual = true}) async {
     final out = <BackupFileInfo>[];
-    for (final (dir, isAuto) in [
-      (await autoDir, true),
-      if (includeManual) (await manualDir, false),
-    ]) {
+    for (final (dir, isAuto) in [(await autoDir, true), if (includeManual) (await manualDir, false)]) {
       await for (final f in dir.list()) {
         if (f is File && f.path.endsWith('.zip')) {
           final stat = await f.stat();
@@ -143,12 +141,15 @@ class BackupService {
     return out;
   }
 
-  Future<ShareResult> share(File file) => SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: 'application/zip')],
-        subject: 'Backup UsahaKonten',
-        text: 'Backup data UsahaKonten (${file.uri.pathSegments.last}). '
-            'Simpan di Google Drive. Pulihkan lewat Pengaturan → Backup & Restore.',
-      ));
+  Future<ShareResult> share(File file) => SharePlus.instance.share(
+    ShareParams(
+      files: [XFile(file.path, mimeType: 'application/zip')],
+      subject: 'Backup UsahaKonten',
+      text:
+          'Backup data UsahaKonten (${file.uri.pathSegments.last}). '
+          'Simpan di Google Drive. Pulihkan lewat Pengaturan → Backup & Restore.',
+    ),
+  );
 
   // ----------------------------------------------------------- restore
   /// Baca file .zip (backup) atau .json (data.json / export Supabase).

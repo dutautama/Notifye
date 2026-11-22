@@ -2,13 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 /// Kartu berjudul untuk mengelompokkan daftar di Beranda.
 class SectionCard extends StatelessWidget {
-  const SectionCard({
-    super.key,
-    required this.title,
-    required this.icon,
-    required this.child,
-    this.trailing,
-  });
+  const SectionCard({super.key, required this.title, required this.icon, required this.child, this.trailing});
 
   final String title;
   final IconData icon;
@@ -31,11 +25,10 @@ class SectionCard extends StatelessWidget {
                   Icon(icon, size: 20, color: scheme.primary),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w600)),
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                    ),
                   ),
                   ?trailing,
                 ],
@@ -58,8 +51,7 @@ class EmptyHint extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      child: Text(message,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      child: Text(message, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
     );
   }
 }

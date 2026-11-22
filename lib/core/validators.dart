@@ -29,6 +29,5 @@ class Validators {
   }
 
   /// "1.500.000" → 1500000, "12,5" → 12.5
-  static double? parseNumber(String v) =>
-      double.tryParse(v.trim().replaceAll('.', '').replaceAll(',', '.'));
+  static double? parseNumber(String v) => double.tryParse(v.trim().replaceAll('.', '').replaceAll(',', '.'));
 }

@@ -7,7 +7,8 @@ import '../../data/repositories/hutang_repository.dart';
 import '../../providers/app_providers.dart';
 
 final _debtSummaryProvider = StreamProvider.autoDispose<List<DebtRow>>(
-    (ref) => ref.watch(hutangRepositoryProvider).watchDebts());
+  (ref) => ref.watch(hutangRepositoryProvider).watchDebts(),
+);
 
 class BusinessHomeScreen extends ConsumerWidget {
   const BusinessHomeScreen({super.key});
@@ -20,22 +21,24 @@ class BusinessHomeScreen extends ConsumerWidget {
     final payable = debts.where((d) => !d.isReceivable).fold<double>(0, (s, d) => s + d.remaining);
 
     Widget action(IconData icon, String label, String route, {Color? color}) => Card(
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () => context.push(route),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: 30, color: color ?? scheme.primary),
-                  const SizedBox(height: 8),
-                  Text(label, textAlign: TextAlign.center, maxLines: 2),
-                ],
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push(route),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 28, color: color ?? scheme.primary),
+              const SizedBox(height: 6),
+              Flexible(
+                child: Text(label, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
               ),
-            ),
+            ],
           ),
-        );
+        ),
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Usaha')),
@@ -72,19 +75,28 @@ class BusinessHomeScreen extends ConsumerWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Text('Piutang (belum dibayar pelanggan)'),
-                        Text(Fmt.rupiah(receivable),
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange.shade800)),
-                      ]),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Piutang (belum dibayar pelanggan)'),
+                          Text(
+                            Fmt.rupiah(receivable),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange.shade800),
+                          ),
+                        ],
+                      ),
                     ),
                     Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Text('Hutang (ke supplier)'),
-                        Text(Fmt.rupiah(payable),
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: scheme.error)),
-                      ]),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Hutang (ke supplier)'),
+                          Text(
+                            Fmt.rupiah(payable),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: scheme.error),
+                          ),
+                        ],
+                      ),
                     ),
                     const Icon(Icons.chevron_right),
                   ],
@@ -99,7 +111,7 @@ class BusinessHomeScreen extends ConsumerWidget {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
-            childAspectRatio: 0.95,
+            childAspectRatio: 0.9,
             children: [
               action(Icons.receipt_long_outlined, 'Riwayat transaksi', '/usaha/transaksi'),
               action(Icons.account_balance_wallet_outlined, 'Hutang & piutang', '/usaha/hutang-piutang'),

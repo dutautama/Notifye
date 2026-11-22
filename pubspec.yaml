@@ -3,7 +3,7 @@ description: "UsahaKonten — manajemen usaha jasa/digital & konten media sosial
 publish_to: 'none'
 
 # Format: <versi>+<build>. CI otomatis menimpa nomor build dengan run_number.
-version: 0.2.0+1
+version: 1.0.0+1
 
 environment:
   sdk: ^3.14.0
@@ -14,6 +14,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   material_ui: ^1.11.1
+  cupertino_ui: ^1.1.7
   cupertino_icons: ^2.0.0
   flutter_riverpod: ^3.0.0
   go_router: ^18.1.4
@@ -36,7 +37,6 @@ dependencies:
   # Invoice, struk & laporan
   pdf: ^3.13.1
   print_bluetooth_thermal: ^1.2.5
-  table_calendar: ^3.3.0
 
 dev_dependencies:
   flutter_test:

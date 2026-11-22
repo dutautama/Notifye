@@ -18,9 +18,11 @@ class ShareService {
   }
 
   static Future<void> shareFile(File file, {required String mime, String? subject, String? text}) =>
-      SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: mime)],
-        subject: subject,
-        text: text,
-      ));
+      SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: mime)],
+          subject: subject,
+          text: text,
+        ),
+      );
 }

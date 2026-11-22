@@ -70,18 +70,22 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
 
   Future<void> _save() async {
     if (!_form.currentState!.validate()) return;
-    await ref.read(invoiceRepositoryProvider).updateProfile(BusinessProfileCompanion(
-          name: Value(_name.text.trim()),
-          address: _v(_address),
-          phone: _v(_phone),
-          email: _v(_email),
-          invoicePrefix: Value(_invPrefix.text.trim().toUpperCase()),
-          purchasePrefix: Value(_poPrefix.text.trim().toUpperCase()),
-          invoiceFooter: _v(_footer),
-          bankInfo: _v(_bank),
-          taxPercent: Value(QtyField.read(_tax)),
-          logoPath: Value(_logo),
-        ));
+    await ref
+        .read(invoiceRepositoryProvider)
+        .updateProfile(
+          BusinessProfileCompanion(
+            name: Value(_name.text.trim()),
+            address: _v(_address),
+            phone: _v(_phone),
+            email: _v(_email),
+            invoicePrefix: Value(_invPrefix.text.trim().toUpperCase()),
+            purchasePrefix: Value(_poPrefix.text.trim().toUpperCase()),
+            invoiceFooter: _v(_footer),
+            bankInfo: _v(_bank),
+            taxPercent: Value(QtyField.read(_tax)),
+            logoPath: Value(_logo),
+          ),
+        );
     if (mounted) {
       showSnack(context, 'Profil usaha tersimpan');
       context.pop();
@@ -116,12 +120,17 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
               validator: (v) => Validators.required(v, 'Nama usaha wajib diisi'),
             ),
             const SizedBox(height: 16),
-            TextFormField(controller: _address, maxLines: 2, decoration: const InputDecoration(labelText: 'Alamat')),
+            TextFormField(
+              controller: _address,
+              maxLines: 2,
+              decoration: const InputDecoration(labelText: 'Alamat'),
+            ),
             const SizedBox(height: 16),
             TextFormField(
-                controller: _phone,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'No. HP / WhatsApp')),
+              controller: _phone,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'No. HP / WhatsApp'),
+            ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _email,
@@ -130,21 +139,25 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
               validator: (v) => v == null || v.trim().isEmpty ? null : Validators.email(v),
             ),
             const SizedBox(height: 16),
-            Row(children: [
-              Expanded(
-                child: TextFormField(
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
                     controller: _invPrefix,
                     decoration: const InputDecoration(labelText: 'Awalan invoice', helperText: 'mis. INV'),
-                    validator: _prefix),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
+                    validator: _prefix,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
                     controller: _poPrefix,
                     decoration: const InputDecoration(labelText: 'Awalan pembelian', helperText: 'mis. PO'),
-                    validator: _prefix),
-              ),
-            ]),
+                    validator: _prefix,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             QtyField(controller: _tax, label: 'Pajak default (%) — kosongkan jika tidak ada'),
             const SizedBox(height: 16),
@@ -152,11 +165,16 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
               controller: _bank,
               maxLines: 3,
               decoration: const InputDecoration(
-                  labelText: 'Info pembayaran', hintText: 'mis. BCA 1234567890 a.n. Nama'),
+                labelText: 'Info pembayaran',
+                hintText: 'mis. BCA 1234567890 a.n. Nama',
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
-                controller: _footer, maxLines: 2, decoration: const InputDecoration(labelText: 'Catatan kaki invoice')),
+              controller: _footer,
+              maxLines: 2,
+              decoration: const InputDecoration(labelText: 'Catatan kaki invoice'),
+            ),
             const SizedBox(height: 24),
             FilledButton(onPressed: _save, child: const Text('Simpan')),
           ],

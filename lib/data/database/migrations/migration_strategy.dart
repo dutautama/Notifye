@@ -28,10 +28,9 @@ MigrationStrategy buildMigrationStrategy(AppDatabase db) {
     },
     beforeOpen: (details) async {
       await db.customStatement('PRAGMA foreign_keys = ON');
-      await db.into(db.meta).insertOnConflictUpdate(MetaCompanion.insert(
-            key: 'schema_version',
-            value: '$currentSchemaVersion',
-          ));
+      await db
+          .into(db.meta)
+          .insertOnConflictUpdate(MetaCompanion.insert(key: 'schema_version', value: '$currentSchemaVersion'));
     },
   );
 }

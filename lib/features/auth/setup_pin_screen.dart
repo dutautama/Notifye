@@ -48,13 +48,10 @@ class _SetupPinScreenState extends ConsumerState<SetupPinScreen> {
               children: [
                 Icon(Icons.lock_outline, size: 48, color: scheme.primary),
                 const SizedBox(height: 12),
-                Text('Selamat datang di UsahaKonten',
-                    textAlign: TextAlign.center, style: text.titleLarge),
+                Text('Selamat datang di UsahaKonten', textAlign: TextAlign.center, style: text.titleLarge),
                 const SizedBox(height: 8),
                 Text(
-                  _first == null
-                      ? 'Buat PIN 6 digit untuk mengunci aplikasi.'
-                      : 'Masukkan PIN yang sama sekali lagi.',
+                  _first == null ? 'Buat PIN 6 digit untuk mengunci aplikasi.' : 'Masukkan PIN yang sama sekali lagi.',
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 4),

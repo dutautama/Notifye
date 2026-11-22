@@ -28,10 +28,7 @@ Future<void> runResetAppFlow(BuildContext context, WidgetRef ref) async {
   );
   if (step1 != true || !context.mounted) return;
 
-  final step2 = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => const _TypeToConfirmDialog(),
-  );
+  final step2 = await showDialog<bool>(context: context, builder: (ctx) => const _TypeToConfirmDialog());
   if (step2 != true || !context.mounted) return;
 
   final messenger = ScaffoldMessenger.of(context);

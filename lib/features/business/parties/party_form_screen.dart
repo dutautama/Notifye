@@ -77,22 +77,26 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
     try {
       final repo = ref.read(pelangganRepositoryProvider);
       final id = _isCustomer
-          ? await repo.saveCustomer(CustomersCompanion(
-              id: _isEdit ? Value(widget.partyId!) : const Value.absent(),
-              name: Value(_name.text.trim()),
-              phone: _v(_phone),
-              email: _v(_email),
-              address: _v(_address),
-              notes: _v(_notes),
-            ))
-          : await repo.saveSupplier(SuppliersCompanion(
-              id: _isEdit ? Value(widget.partyId!) : const Value.absent(),
-              name: Value(_name.text.trim()),
-              phone: _v(_phone),
-              email: _v(_email),
-              address: _v(_address),
-              notes: _v(_notes),
-            ));
+          ? await repo.saveCustomer(
+              CustomersCompanion(
+                id: _isEdit ? Value(widget.partyId!) : const Value.absent(),
+                name: Value(_name.text.trim()),
+                phone: _v(_phone),
+                email: _v(_email),
+                address: _v(_address),
+                notes: _v(_notes),
+              ),
+            )
+          : await repo.saveSupplier(
+              SuppliersCompanion(
+                id: _isEdit ? Value(widget.partyId!) : const Value.absent(),
+                name: Value(_name.text.trim()),
+                phone: _v(_phone),
+                email: _v(_email),
+                address: _v(_address),
+                notes: _v(_notes),
+              ),
+            );
       if (mounted) {
         showSnack(context, 'Tersimpan');
         context.pop(id);
@@ -105,11 +109,13 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
   }
 
   Future<void> _delete() async {
-    final ok = await confirmDialog(context,
-        title: 'Hapus ${widget.kind.label.toLowerCase()}?',
-        message: 'Kontak disembunyikan dari daftar. Transaksi lama tetap menampilkan namanya.',
-        ok: 'Hapus',
-        danger: true);
+    final ok = await confirmDialog(
+      context,
+      title: 'Hapus ${widget.kind.label.toLowerCase()}?',
+      message: 'Kontak disembunyikan dari daftar. Transaksi lama tetap menampilkan namanya.',
+      ok: 'Hapus',
+      danger: true,
+    );
     if (!ok) return;
     final repo = ref.read(pelangganRepositoryProvider);
     _isCustomer ? await repo.deleteCustomer(widget.partyId!) : await repo.deleteSupplier(widget.partyId!);
@@ -152,9 +158,17 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
               validator: (v) => v == null || v.trim().isEmpty ? null : Validators.email(v),
             ),
             const SizedBox(height: 16),
-            TextFormField(controller: _address, maxLines: 2, decoration: const InputDecoration(labelText: 'Alamat')),
+            TextFormField(
+              controller: _address,
+              maxLines: 2,
+              decoration: const InputDecoration(labelText: 'Alamat'),
+            ),
             const SizedBox(height: 16),
-            TextFormField(controller: _notes, maxLines: 3, decoration: const InputDecoration(labelText: 'Catatan')),
+            TextFormField(
+              controller: _notes,
+              maxLines: 3,
+              decoration: const InputDecoration(labelText: 'Catatan'),
+            ),
             if (_isEdit) ...[
               const SizedBox(height: 16),
               Wrap(

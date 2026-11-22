@@ -6,12 +6,7 @@ import '../models/dashboard_summary.dart';
 
 /// Menyusun data Beranda dari repository (tanpa akses database langsung).
 class DashboardService {
-  DashboardService({
-    required this.transaksi,
-    required this.hutang,
-    required this.produk,
-    required this.konten,
-  });
+  DashboardService({required this.transaksi, required this.hutang, required this.produk, required this.konten});
 
   final TransaksiRepository transaksi;
   final HutangRepository hutang;
@@ -65,13 +60,10 @@ int sumCount(List<DailySalesRow> rows, DateTime from, DateTime to) =>
     _inRange(rows, from, to).fold(0, (s, r) => s + r.trxCount);
 
 /// Deret harian lengkap [from..to]; hari tanpa data bernilai 0.
-List<DailySales> buildDailySeries(List<DailySalesRow> rows,
-    {required DateTime from, required DateTime to}) {
+List<DailySales> buildDailySeries(List<DailySalesRow> rows, {required DateTime from, required DateTime to}) {
   final byDate = {for (final r in rows) DateTime(r.date.year, r.date.month, r.date.day): r};
   final out = <DailySales>[];
-  for (var d = DateTime(from.year, from.month, from.day);
-      !d.isAfter(to);
-      d = DateTime(d.year, d.month, d.day + 1)) {
+  for (var d = DateTime(from.year, from.month, from.day); !d.isAfter(to); d = DateTime(d.year, d.month, d.day + 1)) {
     final r = byDate[d];
     out.add(DailySales(d, r?.omzet ?? 0, r?.trxCount ?? 0));
   }

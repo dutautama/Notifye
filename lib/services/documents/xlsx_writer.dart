@@ -18,9 +18,7 @@ class XlsxWriter {
   static Uint8List build(List<XlsxSheet> sheets) {
     if (sheets.isEmpty) throw ArgumentError('Minimal 1 sheet');
     final names = <String>{};
-    final safeNames = [
-      for (final s in sheets) _uniqueName(_sanitizeSheetName(s.name), names),
-    ];
+    final safeNames = [for (final s in sheets) _uniqueName(_sanitizeSheetName(s.name), names)];
     final archive = Archive()
       ..addFile(_file('[Content_Types].xml', _contentTypes(sheets.length)))
       ..addFile(_file('_rels/.rels', _rootRels))
@@ -113,7 +111,7 @@ class XlsxWriter {
     final sheets = [
       for (var i = 1; i <= n; i++)
         '<Override PartName="/xl/worksheets/sheet$i.xml" '
-            'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+            'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>',
     ].join();
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
@@ -126,7 +124,8 @@ class XlsxWriter {
         '$sheets</Types>';
   }
 
-  static const _rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+  static const _rootRels =
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
       '<Relationship Id="rId1" '
       'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
@@ -134,8 +133,7 @@ class XlsxWriter {
 
   static String _workbook(List<String> names) {
     final sheets = [
-      for (var i = 0; i < names.length; i++)
-        '<sheet name="${_esc(names[i])}" sheetId="${i + 1}" r:id="rId${i + 1}"/>'
+      for (var i = 0; i < names.length; i++) '<sheet name="${_esc(names[i])}" sheetId="${i + 1}" r:id="rId${i + 1}"/>',
     ].join();
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
@@ -148,7 +146,7 @@ class XlsxWriter {
       for (var i = 1; i <= n; i++)
         '<Relationship Id="rId$i" '
             'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" '
-            'Target="worksheets/sheet$i.xml"/>'
+            'Target="worksheets/sheet$i.xml"/>',
     ].join();
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
@@ -157,7 +155,8 @@ class XlsxWriter {
         'Target="styles.xml"/></Relationships>';
   }
 
-  static const _styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+  static const _styles =
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
       '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font>'
       '<font><b/><sz val="11"/><name val="Calibri"/></font></fonts>'

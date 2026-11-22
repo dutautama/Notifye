@@ -66,11 +66,13 @@ class CategoriesScreen extends ConsumerWidget {
                     tooltip: 'Hapus',
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () async {
-                      if (await confirmDialog(context,
-                          title: 'Hapus kategori?',
-                          message: 'Produk di kategori ini tetap ada (tanpa kategori).',
-                          ok: 'Hapus',
-                          danger: true)) {
+                      if (await confirmDialog(
+                        context,
+                        title: 'Hapus kategori?',
+                        message: 'Produk di kategori ini tetap ada (tanpa kategori).',
+                        ok: 'Hapus',
+                        danger: true,
+                      )) {
                         await ref.read(produkRepositoryProvider).deleteCategory(c.id);
                       }
                     },

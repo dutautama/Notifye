@@ -29,10 +29,12 @@ class PartyRow {
 Stream<List<PartyRow>> watchParties(WidgetRef ref, PartyKind kind, String search) {
   final repo = ref.read(pelangganRepositoryProvider);
   return kind == PartyKind.customer
-      ? repo.watchCustomers(search: search).map((l) =>
-          [for (final c in l) PartyRow(c.id, c.name, c.phone, c.email, c.address, c.notes)])
-      : repo.watchSuppliers(search: search).map((l) =>
-          [for (final s in l) PartyRow(s.id, s.name, s.phone, s.email, s.address, s.notes)]);
+      ? repo
+            .watchCustomers(search: search)
+            .map((l) => [for (final c in l) PartyRow(c.id, c.name, c.phone, c.email, c.address, c.notes)])
+      : repo
+            .watchSuppliers(search: search)
+            .map((l) => [for (final s in l) PartyRow(s.id, s.name, s.phone, s.email, s.address, s.notes)]);
 }
 
 /// Daftar pelanggan/supplier. [pickMode] mengembalikan PartyRow terpilih.
@@ -86,9 +88,9 @@ class _PartyListScreenState extends ConsumerState<PartyListScreen> {
                 final list = snap.data!;
                 if (list.isEmpty) {
                   return Center(
-                    child: Text(_query.isEmpty
-                        ? 'Belum ada ${k.label.toLowerCase()}.'
-                        : 'Tidak ada yang cocok dengan "$_query".'),
+                    child: Text(
+                      _query.isEmpty ? 'Belum ada ${k.label.toLowerCase()}.' : 'Tidak ada yang cocok dengan "$_query".',
+                    ),
                   );
                 }
                 return ListView.separated(
@@ -101,9 +103,7 @@ class _PartyListScreenState extends ConsumerState<PartyListScreen> {
                       leading: CircleAvatar(child: Text(p.name.characters.first.toUpperCase())),
                       title: Text(p.name),
                       subtitle: Text(p.phone ?? p.email ?? '-'),
-                      onTap: () => widget.pickMode
-                          ? context.pop(p)
-                          : context.push('/usaha/${k.path}/${p.id}'),
+                      onTap: () => widget.pickMode ? context.pop(p) : context.push('/usaha/${k.path}/${p.id}'),
                     );
                   },
                 );

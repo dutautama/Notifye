@@ -13,8 +13,7 @@ class MainShell extends StatelessWidget {
       body: shell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: shell.currentIndex,
-        onDestinationSelected: (i) =>
-            shell.goBranch(i, initialLocation: i == shell.currentIndex),
+        onDestinationSelected: (i) => shell.goBranch(i, initialLocation: i == shell.currentIndex),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
@@ -36,10 +35,7 @@ class MainShell extends StatelessWidget {
             selectedIcon: Icon(Icons.bar_chart),
             label: 'Laporan',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.more_horiz),
-            label: 'Lainnya',
-          ),
+          NavigationDestination(icon: Icon(Icons.more_horiz), label: 'Lainnya'),
         ],
       ),
     );

@@ -41,9 +41,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   Stream<List<Product>> _makeStream() => ref.read(produkRepositoryProvider).watchAll(search: _query);
 
   void _setQuery(String q) => setState(() {
-        _query = q;
-        _stream = _makeStream();
-      });
+    _query = q;
+    _stream = _makeStream();
+  });
 
   Future<void> _scan() async {
     final code = await BarcodeScannerPage.scan(context);
@@ -51,10 +51,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     final p = await ref.read(produkRepositoryProvider).findByBarcode(code);
     if (!mounted) return;
     if (p == null) {
-      final add = await confirmDialog(context,
-          title: 'Barcode belum terdaftar',
-          message: 'Barcode $code belum ada. Tambah produk baru dengan barcode ini?',
-          ok: 'Tambah');
+      final add = await confirmDialog(
+        context,
+        title: 'Barcode belum terdaftar',
+        message: 'Barcode $code belum ada. Tambah produk baru dengan barcode ini?',
+        ok: 'Tambah',
+      );
       if (add && mounted) context.push('/usaha/produk/baru', extra: code);
       return;
     }
@@ -114,7 +116,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         onPressed: () {
                           _search.clear();
                           _setQuery('');
-                        }),
+                        },
+                      ),
               ),
             ),
           ),
@@ -163,26 +166,32 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                     final p = items[i];
                     final low = p.trackStock && p.stock <= p.minStock;
                     return ListTile(
-                      leading: AttachmentImage(p.imagePath,
-                          fallback: p.kind == 'jasa'
-                              ? Icons.handyman_outlined
-                              : p.kind == 'digital'
-                                  ? Icons.cloud_download_outlined
-                                  : Icons.inventory_2_outlined),
+                      leading: AttachmentImage(
+                        p.imagePath,
+                        fallback: p.kind == 'jasa'
+                            ? Icons.handyman_outlined
+                            : p.kind == 'digital'
+                            ? Icons.cloud_download_outlined
+                            : Icons.inventory_2_outlined,
+                      ),
                       title: Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      subtitle: Text([
-                        productKindLabels[p.kind],
-                        if (p.sku != null && p.sku!.isNotEmpty) p.sku,
-                        if (!p.isActive) 'nonaktif',
-                      ].join(' • ')),
+                      subtitle: Text(
+                        [
+                          productKindLabels[p.kind],
+                          if (p.sku != null && p.sku!.isNotEmpty) p.sku,
+                          if (!p.isActive) 'nonaktif',
+                        ].join(' • '),
+                      ),
                       trailing: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(Fmt.rupiah(p.sellPrice), style: const TextStyle(fontWeight: FontWeight.w600)),
                           if (p.trackStock)
-                            Text('Stok ${Fmt.number(p.stock)} ${p.unit}',
-                                style: TextStyle(fontSize: 12, color: low ? scheme.error : null)),
+                            Text(
+                              'Stok ${Fmt.number(p.stock)} ${p.unit}',
+                              style: TextStyle(fontSize: 12, color: low ? scheme.error : null),
+                            ),
                         ],
                       ),
                       onTap: () => _open(p),

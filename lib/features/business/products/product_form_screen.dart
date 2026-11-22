@@ -118,8 +118,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       context.pop(id);
     } catch (e) {
       if (mounted) {
-        showSnack(context,
-            e.toString().contains('UNIQUE') ? 'SKU sudah dipakai produk lain.' : 'Gagal menyimpan: $e');
+        showSnack(context, e.toString().contains('UNIQUE') ? 'SKU sudah dipakai produk lain.' : 'Gagal menyimpan: $e');
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -151,6 +150,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               SegmentedButton<bool>(
+                showSelectedIcon: false,
                 segments: const [
                   ButtonSegment(value: true, label: Text('Tambah'), icon: Icon(Icons.add)),
                   ButtonSegment(value: false, label: Text('Kurangi'), icon: Icon(Icons.remove)),
@@ -161,7 +161,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               const SizedBox(height: 12),
               QtyField(controller: qty, label: 'Jumlah (${_unit.text})', required: true),
               const SizedBox(height: 12),
-              TextField(controller: note, decoration: const InputDecoration(labelText: 'Alasan (mis. rusak, stok opname)')),
+              TextField(
+                controller: note,
+                decoration: const InputDecoration(labelText: 'Alasan (mis. rusak, stok opname)'),
+              ),
             ],
           ),
           actions: [
@@ -177,8 +180,13 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     );
     final amount = QtyField.read(qty);
     if (ok == true && amount > 0) {
-      await ref.read(produkRepositoryProvider).adjustStock(widget.productId!, add ? amount : -amount,
-          notes: note.text.trim().isEmpty ? null : note.text.trim());
+      await ref
+          .read(produkRepositoryProvider)
+          .adjustStock(
+            widget.productId!,
+            add ? amount : -amount,
+            notes: note.text.trim().isEmpty ? null : note.text.trim(),
+          );
       final p = await ref.read(produkRepositoryProvider).getById(widget.productId!);
       if (mounted && p != null) {
         setState(() {
@@ -193,11 +201,13 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   }
 
   Future<void> _delete() async {
-    final ok = await confirmDialog(context,
-        title: 'Hapus produk?',
-        message: 'Produk disembunyikan dari daftar. Riwayat transaksi tetap aman.',
-        ok: 'Hapus',
-        danger: true);
+    final ok = await confirmDialog(
+      context,
+      title: 'Hapus produk?',
+      message: 'Produk disembunyikan dari daftar. Riwayat transaksi tetap aman.',
+      ok: 'Hapus',
+      danger: true,
+    );
     if (!ok) return;
     await ref.read(produkRepositoryProvider).softDelete(widget.productId!);
     if (mounted) context.pop();
@@ -239,9 +249,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             ),
             const SizedBox(height: 16),
             SegmentedButton<String>(
-              segments: [
-                for (final e in productKindLabels.entries) ButtonSegment(value: e.key, label: Text(e.value)),
-              ],
+              showSelectedIcon: false,
+              segments: [for (final e in productKindLabels.entries) ButtonSegment(value: e.key, label: Text(e.value))],
               selected: {_kind},
               onSelectionChanged: (s) => setState(() {
                 _kind = s.first;
@@ -251,15 +260,13 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String?>(
+              isExpanded: true,
               key: ValueKey('cat-${cats.value?.length}'),
-              initialValue: (cats.value ?? const <Category>[]).any((c) => c.id == _categoryId)
-                  ? _categoryId
-                  : null,
+              initialValue: (cats.value ?? const <Category>[]).any((c) => c.id == _categoryId) ? _categoryId : null,
               decoration: const InputDecoration(labelText: 'Kategori'),
               items: [
                 const DropdownMenuItem(value: null, child: Text('— Tanpa kategori —')),
-                for (final c in cats.value ?? const <Category>[])
-                  DropdownMenuItem(value: c.id, child: Text(c.name)),
+                for (final c in cats.value ?? const <Category>[]) DropdownMenuItem(value: c.id, child: Text(c.name)),
               ],
               onChanged: (v) => setState(() => _categoryId = v),
             ),
@@ -273,21 +280,31 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             ),
             Row(
               children: [
-                Expanded(child: MoneyField(controller: _sell, label: 'Harga jual')),
+                Expanded(
+                  child: MoneyField(controller: _sell, label: 'Harga jual'),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: MoneyField(controller: _buy, label: 'Harga modal')),
+                Expanded(
+                  child: MoneyField(controller: _buy, label: 'Harga modal'),
+                ),
               ],
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(controller: _sku, decoration: const InputDecoration(labelText: 'SKU / kode')),
+                  child: TextFormField(
+                    controller: _sku,
+                    decoration: const InputDecoration(labelText: 'SKU / kode'),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 SizedBox(
                   width: 100,
-                  child: TextFormField(controller: _unit, decoration: const InputDecoration(labelText: 'Satuan')),
+                  child: TextFormField(
+                    controller: _unit,
+                    decoration: const InputDecoration(labelText: 'Satuan'),
+                  ),
                 ),
               ],
             ),
@@ -326,7 +343,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         : QtyField(controller: _stock, label: 'Stok awal'),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(child: QtyField(controller: _minStock, label: 'Stok minimum')),
+                  Expanded(
+                    child: QtyField(controller: _minStock, label: 'Stok minimum'),
+                  ),
                 ],
               ),
             if (_trackStock && _isEdit)
@@ -372,7 +391,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 }
 
 final _categoriesProvider = StreamProvider.autoDispose<List<Category>>(
-    (ref) => ref.watch(produkRepositoryProvider).watchCategories());
+  (ref) => ref.watch(produkRepositoryProvider).watchCategories(),
+);
 
 /// Relasi 2 arah: ide konten yang mempromosikan produk ini.
 class _LinkedContent extends ConsumerWidget {
@@ -390,16 +410,18 @@ class _LinkedContent extends ConsumerWidget {
           icon: Icons.lightbulb_outline,
           child: ideas.isEmpty
               ? const EmptyHint('Belum ada. Tautkan dari halaman ide konten.')
-              : Column(children: [
-                  for (final i in ideas)
-                    ListTile(
-                      dense: true,
-                      title: Text(i.title),
-                      subtitle: Text('Status: ${i.status}'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push('/konten/ide/${i.id}'),
-                    ),
-                ]),
+              : Column(
+                  children: [
+                    for (final i in ideas)
+                      ListTile(
+                        dense: true,
+                        title: Text(i.title),
+                        subtitle: Text('Status: ${i.status}'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/konten/ide/${i.id}'),
+                      ),
+                  ],
+                ),
         );
       },
     );
@@ -428,20 +450,23 @@ class _StockHistory extends ConsumerWidget {
         return SectionCard(
           title: 'Riwayat stok',
           icon: Icons.history,
-          child: Column(children: [
-            for (final m in list.take(15))
-              ListTile(
-                dense: true,
-                title: Text(_reasons[m.reason] ?? m.reason),
-                subtitle: Text([Fmt.dateTime(m.createdAt), if (m.notes != null) m.notes!].join(' • ')),
-                trailing: Text(
-                  '${m.qtyChange > 0 ? '+' : ''}${Fmt.number(m.qtyChange)}',
-                  style: TextStyle(
+          child: Column(
+            children: [
+              for (final m in list.take(15))
+                ListTile(
+                  dense: true,
+                  title: Text(_reasons[m.reason] ?? m.reason),
+                  subtitle: Text([Fmt.dateTime(m.createdAt), if (m.notes != null) m.notes!].join(' • ')),
+                  trailing: Text(
+                    '${m.qtyChange > 0 ? '+' : ''}${Fmt.number(m.qtyChange)}',
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: m.qtyChange < 0 ? Theme.of(context).colorScheme.error : Colors.green.shade700),
+                      color: m.qtyChange < 0 ? Theme.of(context).colorScheme.error : Colors.green.shade700,
+                    ),
+                  ),
                 ),
-              ),
-          ]),
+            ],
+          ),
         );
       },
     );

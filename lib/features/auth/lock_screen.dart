@@ -50,9 +50,11 @@ class _LockScreenState extends ConsumerState<LockScreen> {
       case PinOk():
         break;
       case PinWrong(:final failures, :final lockedFor):
-        setState(() => _message = lockedFor > Duration.zero
-            ? 'PIN salah $failures kali.'
-            : 'PIN salah. Sisa percobaan sebelum dikunci: ${5 - failures}.');
+        setState(
+          () => _message = lockedFor > Duration.zero
+              ? 'PIN salah $failures kali.'
+              : 'PIN salah. Sisa percobaan sebelum dikunci: ${5 - failures}.',
+        );
         if (lockedFor > Duration.zero) _startLock(lockedFor);
       case PinLocked(:final remaining):
         setState(() => _message = 'Terlalu banyak percobaan.');
@@ -83,10 +85,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                 SizedBox(
                   height: 40,
                   child: Text(
-                    [
-                      ?_message,
-                      if (locked) 'Coba lagi dalam $secs detik.',
-                    ].join('\n'),
+                    [?_message, if (locked) 'Coba lagi dalam $secs detik.'].join('\n'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: scheme.error),
                   ),

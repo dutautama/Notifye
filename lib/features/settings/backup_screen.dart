@@ -55,15 +55,15 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   }
 
   Future<void> _createAndShare() => _run('Membuat backup…', () async {
-        final file = await _svc.createBackup();
-        await _svc.share(file);
-      });
+    final file = await _svc.createBackup();
+    await _svc.share(file);
+  });
 
   Future<void> _shareLatest() => _run('Menyiapkan…', () async {
-        final list = await _svc.listBackups();
-        final file = list.isEmpty ? await _svc.createBackup() : list.first.file;
-        await _svc.share(file);
-      });
+    final list = await _svc.listBackups();
+    final file = list.isEmpty ? await _svc.createBackup() : list.first.file;
+    await _svc.share(file);
+  });
 
   Future<void> _pickAndRestore() async {
     final picked = await FilePicker.pickFile(dialogTitle: 'Pilih file backup (.zip / .json)');
@@ -97,30 +97,40 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               children: [
                 Text(fileName, style: const TextStyle(fontWeight: FontWeight.w600)),
                 if (backup.createdAt != null) Text('Dibuat: ${Fmt.dateTime(backup.createdAt)}'),
-                Text('Sumber: ${backup.source == 'supabase' ? 'Export Supabase (lama)' : 'Backup UsahaKonten'}'
-                    ' • skema v${backup.schemaVersion}'),
+                Text(
+                  'Sumber: ${backup.source == 'supabase' ? 'Export Supabase (lama)' : 'Backup UsahaKonten'}'
+                  ' • skema v${backup.schemaVersion}',
+                ),
                 const SizedBox(height: 8),
                 for (final e in _tableLabels.entries)
                   if ((counts[e.key] ?? 0) > 0) Text('• ${e.value}: ${counts[e.key]}'),
                 if (backup.attachments.isNotEmpty) Text('• Lampiran: ${backup.attachments.length} file'),
                 const SizedBox(height: 12),
-                Text('Ganti semua (Replace)', style: TextStyle(fontWeight: FontWeight.w600, color: scheme.error)),
-                const Text('Data di HP ini dihapus lalu diganti persis dengan isi backup. '
-                    'Cocok untuk pindah HP / mengembalikan data.'),
+                Text(
+                  'Ganti semua (Replace)',
+                  style: TextStyle(fontWeight: FontWeight.w600, color: scheme.error),
+                ),
+                const Text(
+                  'Data di HP ini dihapus lalu diganti persis dengan isi backup. '
+                  'Cocok untuk pindah HP / mengembalikan data.',
+                ),
                 const SizedBox(height: 8),
                 const Text('Gabungkan (Merge)', style: TextStyle(fontWeight: FontWeight.w600)),
-                const Text('Hanya menambah data dari backup yang belum ada di HP ini. '
-                    'Data di HP ini tidak diubah; transaksi baru ikut memperbarui stok.'),
+                const Text(
+                  'Hanya menambah data dari backup yang belum ada di HP ini. '
+                  'Data di HP ini tidak diubah; transaksi baru ikut memperbarui stok.',
+                ),
                 const SizedBox(height: 8),
-                Text('Sebelum memulihkan, backup otomatis data saat ini dibuat dulu.',
-                    style: Theme.of(ctx).textTheme.bodySmall),
+                Text(
+                  'Sebelum memulihkan, backup otomatis data saat ini dibuat dulu.',
+                  style: Theme.of(ctx).textTheme.bodySmall,
+                ),
               ],
             ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
-            TextButton(
-                onPressed: () => Navigator.pop(ctx, RestoreMode.merge), child: const Text('Gabungkan')),
+            TextButton(onPressed: () => Navigator.pop(ctx, RestoreMode.merge), child: const Text('Gabungkan')),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: scheme.error, minimumSize: const Size(0, 40)),
               onPressed: () => Navigator.pop(ctx, RestoreMode.replace),
@@ -133,9 +143,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     if (mode == null) return;
     await _run('Memulihkan data…', () async {
       final r = await _svc.restore(backup, mode);
-      _snack(mode == RestoreMode.replace
-          ? 'Data berhasil dipulihkan (${r.totalInserted} baris).'
-          : 'Penggabungan selesai: ${r.totalInserted} baris baru, ${r.skipped} sudah ada.');
+      _snack(
+        mode == RestoreMode.replace
+            ? 'Data berhasil dipulihkan (${r.totalInserted} baris).'
+            : 'Penggabungan selesai: ${r.totalInserted} baris baru, ${r.skipped} sudah ada.',
+      );
     });
   }
 
@@ -214,8 +226,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                         ListTile(
                           leading: Icon(b.isAuto ? Icons.schedule : Icons.backup_outlined),
                           title: Text(b.name, style: const TextStyle(fontSize: 13)),
-                          subtitle: Text('${b.isAuto ? 'Otomatis' : 'Manual'} • '
-                              '${Fmt.dateTime(b.modified)} • ${(b.sizeBytes / 1024).toStringAsFixed(0)} KB'),
+                          subtitle: Text(
+                            '${b.isAuto ? 'Otomatis' : 'Manual'} • '
+                            '${Fmt.dateTime(b.modified)} • ${(b.sizeBytes / 1024).toStringAsFixed(0)} KB',
+                          ),
                           trailing: PopupMenuButton<String>(
                             tooltip: 'Pilihan',
                             onSelected: (v) => v == 'share'

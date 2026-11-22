@@ -5,8 +5,7 @@ import 'package:intl/intl.dart';
 class Fmt {
   Fmt._();
 
-  static final _rupiah =
-      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+  static final _rupiah = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
   static final _number = NumberFormat.decimalPattern('id_ID');
   static final _compact = NumberFormat.compact(locale: 'id_ID');
   static final _date = DateFormat('d MMM yyyy', 'id_ID');
@@ -23,6 +22,5 @@ class Fmt {
 
   static String date(DateTime? d) => d == null ? '-' : _date.format(d.toLocal());
 
-  static String dateTime(DateTime? d) =>
-      d == null ? '-' : _dateTime.format(d.toLocal());
+  static String dateTime(DateTime? d) => d == null ? '-' : _dateTime.format(d.toLocal());
 }

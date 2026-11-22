@@ -19,9 +19,19 @@ class DebtListScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Hutang & Piutang'),
-          bottom: const TabBar(tabs: [Tab(text: 'Piutang'), Tab(text: 'Hutang')]),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Piutang'),
+              Tab(text: 'Hutang'),
+            ],
+          ),
         ),
-        body: const TabBarView(children: [_DebtTab(kind: 'piutang'), _DebtTab(kind: 'hutang')]),
+        body: const TabBarView(
+          children: [
+            _DebtTab(kind: 'piutang'),
+            _DebtTab(kind: 'hutang'),
+          ],
+        ),
       ),
     );
   }
@@ -35,7 +45,8 @@ class _DebtTab extends ConsumerWidget {
     final due = d.dueDate == null ? '' : ' yang jatuh tempo ${Fmt.date(d.dueDate)}';
     final ok = await WhatsAppService.send(
       phone: d.partyPhone,
-      message: 'Halo ${d.partyName}, kami ingin mengingatkan tagihan ${d.number} '
+      message:
+          'Halo ${d.partyName}, kami ingin mengingatkan tagihan ${d.number} '
           'sebesar ${Fmt.rupiah(d.remaining)}$due. Terima kasih 🙏',
     );
     if (!ok && context.mounted) showSnack(context, 'Tidak dapat membuka WhatsApp');
@@ -60,28 +71,40 @@ class _DebtTab extends ConsumerWidget {
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Row(children: [
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('Total ${kind == 'piutang' ? 'piutang' : 'hutang'} (${list.length})'),
-                        Text(Fmt.rupiah(total), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                      ]),
-                    ),
-                    if (overdue > 0)
-                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        Text('Terlambat', style: TextStyle(color: scheme.error)),
-                        Text(Fmt.rupiah(overdue),
-                            style: TextStyle(color: scheme.error, fontWeight: FontWeight.bold)),
-                      ]),
-                  ]),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Total ${kind == 'piutang' ? 'piutang' : 'hutang'} (${list.length})'),
+                            Text(Fmt.rupiah(total), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      if (overdue > 0)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('Terlambat', style: TextStyle(color: scheme.error)),
+                            Text(
+                              Fmt.rupiah(overdue),
+                              style: TextStyle(color: scheme.error, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
             if (list.isEmpty)
               Padding(
                 padding: const EdgeInsets.all(32),
-                child: Text(kind == 'piutang' ? 'Tidak ada piutang. 🎉' : 'Tidak ada hutang.',
-                    textAlign: TextAlign.center),
+                child: Text(
+                  kind == 'piutang' ? 'Tidak ada piutang. 🎉' : 'Tidak ada hutang.',
+                  textAlign: TextAlign.center,
+                ),
               ),
             for (final d in list)
               ListTile(
@@ -92,21 +115,25 @@ class _DebtTab extends ConsumerWidget {
                       : '${d.isOverdue(today) ? 'TERLAMBAT sejak' : 'Jatuh tempo'} ${Fmt.date(d.dueDate)}',
                   style: d.isOverdue(today) ? TextStyle(color: scheme.error) : null,
                 ),
-                trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(Fmt.rupiah(d.remaining), style: const TextStyle(fontWeight: FontWeight.w600)),
-                      Text('dari ${Fmt.rupiah(d.total)}', style: const TextStyle(fontSize: 11)),
-                    ],
-                  ),
-                  if (d.isReceivable)
-                    IconButton(
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(Fmt.rupiah(d.remaining), style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Text('dari ${Fmt.rupiah(d.total)}', style: const TextStyle(fontSize: 11)),
+                      ],
+                    ),
+                    if (d.isReceivable)
+                      IconButton(
                         tooltip: 'Ingatkan via WhatsApp',
                         icon: const Icon(Icons.chat_outlined),
-                        onPressed: () => _remind(context, d)),
-                ]),
+                        onPressed: () => _remind(context, d),
+                      ),
+                  ],
+                ),
                 onTap: () => context.push('/usaha/transaksi/${d.transactionId}'),
               ),
           ],

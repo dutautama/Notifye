@@ -127,5 +127,8 @@ List<int> buildReceipt(InvoiceData d, {int width = 32}) {
   if (d.profile.bankInfo != null && remaining > 0) p.line().text(d.profile.bankInfo!);
   p.line().align(1);
   if (d.profile.invoiceFooter != null) p.text(d.profile.invoiceFooter!);
-  return (p..feed(3)..cut()).bytes;
+  return (p
+        ..feed(3)
+        ..cut())
+      .bytes;
 }

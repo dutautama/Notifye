@@ -5,8 +5,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 class BarcodeScannerPage extends StatefulWidget {
   const BarcodeScannerPage({super.key});
 
-  static Future<String?> scan(BuildContext context) => Navigator.of(context)
-      .push<String>(MaterialPageRoute(builder: (_) => const BarcodeScannerPage()));
+  static Future<String?> scan(BuildContext context) =>
+      Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => const BarcodeScannerPage()));
 
   @override
   State<BarcodeScannerPage> createState() => _BarcodeScannerPageState();
@@ -77,8 +77,11 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
             left: 0,
             right: 0,
             bottom: 32,
-            child: Text('Arahkan kamera ke barcode',
-                textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 16)),
+            child: Text(
+              'Arahkan kamera ke barcode',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
           ),
         ],
       ),

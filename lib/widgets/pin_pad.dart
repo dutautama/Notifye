@@ -3,12 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 /// Input PIN 6 digit: indikator titik + papan angka besar (ramah jempol).
 class PinPad extends StatefulWidget {
-  const PinPad({
-    super.key,
-    required this.onCompleted,
-    this.enabled = true,
-    this.length = 6,
-  });
+  const PinPad({super.key, required this.onCompleted, this.enabled = true, this.length = 6});
 
   /// Dipanggil saat 6 digit terisi. Kembalikan true agar input dikosongkan.
   final Future<bool> Function(String pin) onCompleted;
@@ -72,9 +67,7 @@ class _PinPadState extends State<PinPad> {
         SizedBox(
           height: 32,
           child: _busy
-              ? const Center(
-                  child: SizedBox(
-                      width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)))
+              ? const Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)))
               : null,
         ),
         for (final row in const [
@@ -95,21 +88,20 @@ class _PinPadState extends State<PinPad> {
                     child: k.isEmpty
                         ? null
                         : k == '<'
-                            ? IconButton(
-                                tooltip: 'Hapus',
-                                onPressed: widget.enabled ? _backspace : null,
-                                icon: const Icon(Icons.backspace_outlined),
-                              )
-                            : FilledButton.tonal(
-                                style: FilledButton.styleFrom(
-                                  shape: const CircleBorder(),
-                                  minimumSize: const Size(72, 72),
-                                  textStyle: const TextStyle(
-                                      fontSize: 26, fontWeight: FontWeight.w600),
-                                ),
-                                onPressed: widget.enabled ? () => _press(k) : null,
-                                child: Text(k),
-                              ),
+                        ? IconButton(
+                            tooltip: 'Hapus',
+                            onPressed: widget.enabled ? _backspace : null,
+                            icon: const Icon(Icons.backspace_outlined),
+                          )
+                        : FilledButton.tonal(
+                            style: FilledButton.styleFrom(
+                              shape: const CircleBorder(),
+                              minimumSize: const Size(72, 72),
+                              textStyle: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
+                            ),
+                            onPressed: widget.enabled ? () => _press(k) : null,
+                            child: Text(k),
+                          ),
                   ),
                 ),
             ],

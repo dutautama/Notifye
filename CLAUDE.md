@@ -48,7 +48,7 @@ Pemilik**, dan **Catatan Pelajaran** setiap kali menyelesaikan pekerjaan.
 ## Status Setup Pemilik
 | Langkah | Status |
 |---|---|
-| Install APK hasil migrasi offline & buat PIN 6 digit | ⬜ belum |
+| Install APK final & buat PIN 6 digit, uji alur (lihat docs/PANDUAN-UJI.md) | ⬜ belum |
 | Arsip: project Supabase `nxxdqwihakidyhkonxgm` (0 baris data) & secrets keystore lama — tidak dipakai, boleh dihapus | ⚠ arsip |
 
 ## Konteks pemilik
@@ -119,19 +119,26 @@ test/fixtures/                 # supabase-export-sample.json (data uji palsu unt
 | # | Langkah | Status |
 |---|---|---|
 | 1 | Hapus Supabase; skema drift + trigger; 6 repository; PIN lokal; workflow tanpa secrets | ✅ |
-| 2 | Backup & Restore .zip (data.json, meta.json, attachments/), share_plus, file_picker, Replace/Merge, import export Supabase | ⏳ berikutnya |
-| 3 | Backup otomatis mingguan (rotasi 4) + "Kirim backup terakhir ke Drive" | ⬜ |
-| 4 | Master data UI: produk/jasa, kategori, pelanggan, supplier, scanner barcode | ⬜ |
-| 5 | Transaksi, pembayaran, hutang/piutang UI | ⬜ |
-| 6 | Invoice PDF + share + printer Bluetooth; laporan + export Excel/PDF | ⬜ |
-| 7 | Konten: kanban ide, aset (lampiran lokal), kalender, publikasi & reach | ⬜ |
+| 2 | Backup & Restore .zip (data.json, meta.json, attachments/), Replace/Merge, import export Supabase | ✅ |
+| 3 | Backup otomatis mingguan (rotasi 4) + "Kirim backup terakhir ke Drive" | ✅ |
+| 4 | Master data: produk/jasa, kategori, pelanggan, supplier, scanner barcode, profil usaha | ✅ |
+| 5 | Transaksi jual/beli, pembayaran, batal/pulihkan, hutang/piutang | ✅ |
+| 6 | Invoice PDF + share, struk Bluetooth ESC/POS, laporan + export Excel/PDF | ✅ |
+| 7 | Konten: kanban ide, aset (link/lampiran), relasi produk, kalender, publikasi & reach | ✅ |
+
+Semua fitur wajib selesai (skema v1, tidak ada perubahan skema sejak migrasi offline).
+Ide lanjutan (belum diminta): enkripsi database (SQLCipher), backup terenkripsi password, kunci biometrik.
 
 ## Pola yang sudah ada (pakai ulang!)
 - Gerbang PIN: `authControllerProvider` (loading/needsSetup/locked/unlocked) → redirect di `routerProvider`.
   Auto-kunci 60 dtk di background. Reset: `runResetAppFlow` (dialog peringatan + ketik "HAPUS").
 - Data reaktif: repository `watch*()` (Stream) untuk daftar; Beranda: `db.tableUpdates()` → `invalidateSelf`.
 - Error: `ErrorView(error, onRetry)` + `ErrorView.friendly(e)` (pesan constraint SQLite → Indonesia).
-- Widget: `StatCard`, `SectionCard`, `EmptyHint`, `MiniBarChart`, `PinPad`.
+- Widget: `StatCard`, `SectionCard`, `EmptyHint`, `MiniBarChart`, `PinPad`, `TwoColumnGrid`, `MonthCalendar`,
+  `MoneyField`/`QtyField` (format ribuan), `AttachmentImage`, `BarcodeScannerPage`, `confirmDialog`, `showSnack`.
+- Lampiran: `AttachmentService.pick(folder)` → path relatif di `attachments/` (ikut backup).
+- Dokumen: `buildInvoicePdf`, `buildReceipt` (ESC/POS), `XlsxWriter` (tanpa dependensi), `buildReportXlsx/Pdf`.
+- Share file: `ShareService.saveTemp` + `shareFile`. Printer: `PrinterService` (alamat disimpan di tabel meta).
 - WhatsApp: `WhatsAppService.send(phone:, message:)` (wa.me lewat aplikasi WhatsApp).
 - Validasi: `Validators`; angka "1.500.000" → `Validators.parseNumber`.
 - Test DB: `AppDatabase(NativeDatabase.memory())`. Test PIN: `FakeSecureStorage` di `test/pin_test.dart`.
@@ -139,6 +146,19 @@ test/fixtures/                 # supabase-export-sample.json (data uji palsu unt
 - Folder lampiran: `AppResetService.attachmentsDir()` (`<documents>/attachments`).
 
 ## Catatan Pelajaran
+- **Flutter 3.50 + material_ui**: paket pihak ketiga yang memakai widget `package:flutter/material` (InkWell,
+  dll.) CRASH ("No Material widget found") karena kelas Material berbeda. `table_calendar` dibuang → kalender
+  sendiri (`MonthCalendar`). Sebelum menambah paket UI, cek `grep -r "package:flutter/material.dart"` di lib-nya.
+- Lokalisasi Cupertino kini di paket `cupertino_ui` (`GlobalCupertinoLocalizations`) — wajib untuk locale id_ID.
+- `excel` 4.0.6 butuh archive ^3 (bentrok dgn archive 4) → `XlsxWriter` sendiri, divalidasi openpyxl.
+- Plugin bisa menyisipkan izin INTERNET (print_bluetooth_thermal) → `tools:node="remove"` di manifest app.
+  Cek APK hasil build: tidak boleh ada `android.permission.INTERNET`.
+- `DropdownButtonFormField` wajib `isExpanded: true`; hindari `Row(Text, Spacer, Text)` → pakai `Expanded`.
+- `test/app_smoke_test.dart` merender 23 rute di layar 360×780 + font 130% → menangkap overflow/crash
+  sebelum sampai ke HP pemilik. WAJIB ditambah saat membuat layar baru. Teardown: lepas widget & container
+  sebelum `db.close()`, lalu `pump()` agar timer drift selesai.
+- Restore backup: anak dimasukkan SEBELUM induk (FK OFF, dicek `foreign_key_check`) agar trigger stok tidak
+  menghitung ulang; Merge = insert-only + stok produk lokal disesuaikan untuk transaksi baru.
 - 2026-11-22 MIGRASI OFFLINE: Supabase dihapus total atas instruksi pemilik. Project Supabase berisi 0 baris
   (dicek via MCP) → tidak ada data yang dipindah; skrip export tetap di `docs/` untuk jaga-jaga.
 - SQLite trigger tidak bisa mengubah NEW → total/status dihitung ulang dengan UPDATE (`_recalc`).
