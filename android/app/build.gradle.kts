@@ -1,21 +1,7 @@
-import java.util.Properties
-import java.io.FileInputStream
-
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-}
-
-// Kunci tanda tangan rilis: dibuat oleh GitHub Actions dari secrets
-// (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD) ke file key.properties.
-// Jika tidak ada, APK ditandatangani dengan kunci debug (tetap bisa diinstal,
-// tapi update harus uninstall dulu karena kunci debug berubah tiap build).
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("key.properties")
-val hasReleaseKey = keystorePropertiesFile.exists()
-if (hasReleaseKey) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -43,23 +29,20 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            if (hasReleaseKey) {
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-            }
+        // Kunci debug TETAP (di-commit) agar setiap APK dari CI bisa meng-update
+        // aplikasi yang terpasang tanpa uninstall — penting karena data hanya
+        // tersimpan di HP. Kredensial standar debug Android (bukan rahasia).
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
         }
     }
 
     buildTypes {
         release {
-            signingConfig = if (hasReleaseKey) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

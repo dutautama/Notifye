@@ -9,15 +9,11 @@ class ErrorView extends StatelessWidget {
 
   static String friendly(Object error) {
     final s = error.toString().toLowerCase();
-    if (s.contains('socket') || s.contains('failed host lookup') || s.contains('network')) {
-      return 'Tidak ada koneksi internet. Periksa jaringan lalu coba lagi.';
+    if (s.contains('unique constraint')) return 'Data dengan nilai yang sama sudah ada.';
+    if (s.contains('foreign key constraint')) {
+      return 'Data ini masih dipakai data lain sehingga tidak bisa dihapus.';
     }
-    if (s.contains('jwt') || s.contains('401')) {
-      return 'Sesi berakhir. Silakan keluar lalu login kembali.';
-    }
-    if (s.contains('does not exist') || s.contains('42p01') || s.contains('pgrst205')) {
-      return 'Tabel database belum dibuat. Jalankan file SQL migrasi di Supabase SQL Editor.';
-    }
+    if (s.contains('check constraint')) return 'Ada nilai yang tidak valid.';
     return 'Terjadi kesalahan: $error';
   }
 
@@ -28,7 +24,7 @@ class ErrorView extends StatelessWidget {
       padding: const EdgeInsets.all(32),
       children: [
         const SizedBox(height: 48),
-        Icon(Icons.cloud_off, size: 56, color: scheme.error),
+        Icon(Icons.error_outline, size: 56, color: scheme.error),
         const SizedBox(height: 16),
         Text(friendly(error), textAlign: TextAlign.center),
         const SizedBox(height: 24),

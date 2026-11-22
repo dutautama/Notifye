@@ -1,52 +1,46 @@
 # CLAUDE.md — Aturan Proyek UsahaKonten
 
-Baca file ini dulu di setiap sesi SEBELUM menjawab. Perbarui bagian **Status Modul**,
-**Status Setup Pemilik**, dan **Catatan Pelajaran** setiap kali menyelesaikan pekerjaan.
+Baca file ini dulu di setiap sesi SEBELUM menjawab. Perbarui **Status Migrasi/Modul**, **Status Setup
+Pemilik**, dan **Catatan Pelajaran** setiap kali menyelesaikan pekerjaan.
 
 ## ⚠️ ATURAN KERJA SEMI-OTOMATIS (WAJIB, dari pemilik)
 
 ### 1. Pembagian tugas
-- Claude mengerjakan semua yang bisa lewat tulisan: kode, SQL, workflow, dokumentasi, commit, push, memicu build.
-- Pemilik hanya mengerjakan yang secara fisik/jaringan tidak bisa Claude lakukan: login akun, klik tombol
-  di dashboard web, menyalin nilai rahasia, tap Install APK.
+- Claude mengerjakan semua yang bisa lewat tulisan: kode, workflow, dokumentasi, commit, push, memicu build.
+- Pemilik HANYA: tap Install APK, set PIN pertama kali, memberi izin storage saat backup/restore.
 - Jika ragu, default-nya Claude kerjakan sendiri. Jangan melempar tugas karena lebih mudah dijelaskan.
 
 ### 2. Format panduan untuk pemilik
 - Bernomor: **[LANGKAH] → Menu → Tombol → Teks yang diketik/diklik → Hasil yang harus terlihat**.
-- Nama menu persis seperti di layar (Inggris jika UI Inggris, Indonesia jika UI Indonesia).
-- Anggap pemilik belum pernah memakai tool tsb. Istilah teknis wajib dijelaskan.
+- Nama menu persis seperti di layar. Anggap pemilik belum pernah memakai tool tsb; jelaskan istilah teknis.
 - Sertakan 1 kalimat alasan kenapa langkah itu tidak bisa Claude kerjakan sendiri.
 - Akhiri setiap panduan dengan: "Balas 'sudah' jika berhasil, atau kirim screenshot/tulis error yang muncul."
 
 ### 3. Checkpoint wajib (BERHENTI & tunggu "sudah"/"lanjut")
-- Sebelum pemilik memulai setup akun/layanan apa pun.
-- Setelah pemilik selesai setup, sebelum Claude menulis kode.
-- Setelah SQL siap, sebelum pemilik menempelnya ke dashboard.
-- Setelah APK rilis, sebelum lanjut modul berikutnya.
-- Jangan pernah lanjut fase berikutnya tanpa "sudah"/"lanjut".
+- Setelah APK rilis, sebelum lanjut ke langkah/modul berikutnya.
+- **Perubahan skema database** (tabel/kolom/trigger/index, naik `currentSchemaVersion`): BERHENTI & minta
+  konfirmasi SEBELUM push — menyangkut migrasi & file backup pemilik.
 
 ### 4. Otomatisasi push & build
-- Setiap modul selesai → langsung commit & push ke **main** tanpa menunggu (izin sudah diberikan pemilik).
-- Workflow memakai `on: push` (tanpa workflow_dispatch) dan otomatis membuat GitHub Release berisi APK.
-- Setelah push, beri pemilik 1 link Release langsung (`https://github.com/dutautama/Notifye/releases/tag/build-<N>`).
-  Jangan minta pemilik mencari artifact manual.
+- Setiap langkah/modul selesai → commit & push ke **main** (izin sudah diberikan pemilik).
+- Workflow `on: push` (tanpa workflow_dispatch), otomatis membuat GitHub Release berisi APK.
+- Signing: kunci debug TETAP `android/app/debug.keystore` (di-commit, kredensial standar). Tanpa keystore rahasia.
+- Setelah push, beri 1 link Release: `https://github.com/dutautama/Notifye/releases/tag/build-<N>`.
 - Build gagal → Claude perbaiki sendiri & push ulang; lapor hanya setelah berhasil.
 
 ### 5. Keamanan data pemilik
-- JANGAN pernah meminta: password akun, OTP/2FA, password database, Service Role Key, file keystore.
-- Boleh ditempel di chat: Project URL, anon/publishable key, GitHub PAT (scope minimum) bila benar-benar perlu.
-- Nilai rahasia lain → arahkan pemilik mengisi lewat GitHub Secrets, bukan chat.
-- Ingatkan 1 kali di akhir setup untuk menghapus token/kredensial sementara yang tak dipakai.
+- JANGAN pernah meminta secrets, password, token, OTP, atau keystore. Proyek ini tidak memakai secrets.
+- Data hanya ada di HP pemilik; jalur keluar satu-satunya = file backup yang pemilik bagikan sendiri.
 
 ### 6. Gaya komunikasi
 - Bahasa Indonesia, ringkas, tanpa basa-basi.
-- Setiap balasan diakhiri 1 kalimat status: apa yang baru selesai + apa yang harus pemilik lakukan (atau "menunggu konfirmasi").
-- Jika UI Supabase/GitHub mungkin berubah, TANYAKAN tampilan menu terbaru ke pemilik sebelum menebak.
+- Setiap balasan diakhiri 1 kalimat status: apa yang selesai + apa yang pemilik lakukan (atau "menunggu konfirmasi").
+- Jika UI GitHub/Android mungkin berubah, TANYAKAN tampilan menu terbaru sebelum menebak.
 
 ### 7. Larangan keras
 - Jangan minta pemilik membuka terminal, Android Studio, VS Code, atau menjalankan CLI di HP.
-- Jangan pakai fitur yang butuh server tambahan di luar Supabase + GitHub Actions.
-- Jangan menulis kode yang bergantung pada secrets yang belum diisi; pakai placeholder + beri tahu urutan pengisian.
+- DILARANG: Supabase, Firebase, Turso, Neon, atau cloud DB/auth/server apa pun. Aplikasi 100% offline
+  (manifest sengaja TANPA izin INTERNET). Internet hanya lewat aplikasi lain (share backup ke Drive/WhatsApp).
 
 ### 8. Reset konteks
 - Aturan ini tersimpan di sini; setiap sesi baru baca CLAUDE.md dulu.
@@ -54,21 +48,13 @@ Baca file ini dulu di setiap sesi SEBELUM menjawab. Perbarui bagian **Status Mod
 ## Status Setup Pemilik
 | Langkah | Status |
 |---|---|
-| Project Supabase `nxxdqwihakidyhkonxgm` (ap-southeast-1) — terhubung via konektor Supabase MCP | ✅ |
-| Migrasi 0001 init + 0002 harden_functions diterapkan Claude via MCP; Security Advisor 0 temuan | ✅ |
-| Migrasi 0003 single_admin_lock | ⏳ menunggu persetujuan pemilik di prompt konektor |
-| User admin dibuat (pemilik, via dashboard) | ⬜ belum |
-| URL & publishable key → default di workflow (tidak perlu secret) | ✅ |
-| Secrets keystore (4 buah) — file sudah dikirim ke pemilik via chat 2026-11-22 | ⬜ belum |
-| APK diinstal & login berhasil | ⬜ belum |
+| Install APK hasil migrasi offline & buat PIN 6 digit | ⬜ belum |
+| Arsip: project Supabase `nxxdqwihakidyhkonxgm` (0 baris data) & secrets keystore lama — tidak dipakai, boleh dihapus | ⚠ arsip |
 
 ## Konteks pemilik
-- Pemilik proyek **hanya memakai ponsel Android** (tanpa PC).
-- Semua instruksi untuk pemilik harus bisa dikerjakan dari browser ponsel:
-  GitHub web, Supabase Dashboard (SQL Editor), unduh APK dari Actions/Releases.
-- **Dilarang** memberi langkah yang butuh Android Studio, Xcode, atau terminal PC.
-- Bahasa: semua teks UI, pesan error, komentar dokumentasi untuk pemilik → **Bahasa Indonesia**.
-  Nama variabel/kelas/fungsi → Bahasa Inggris.
+- Pemilik **hanya memakai ponsel Android** (tanpa PC). Semua instruksi harus bisa dari browser/aplikasi HP.
+- Teks UI, pesan error, dokumentasi pemilik → **Bahasa Indonesia**. Nama variabel/kelas/fungsi → Inggris
+  (kecuali nama file repository yang diminta pemilik: `produk_`, `pelanggan_`, `transaksi_`, `hutang_`, `invoice_`, `konten_`).
 
 ## Stack
 | Lapisan | Teknologi |
@@ -76,104 +62,89 @@ Baca file ini dulu di setiap sesi SEBELUM menjawab. Perbarui bagian **Status Mod
 | App | Flutter 3.50.1 (Dart 3.14), Material 3 via `package:material_ui` |
 | State | `flutter_riverpod` 3.x (tanpa codegen) |
 | Navigasi | `go_router` 18.x, `StatefulShellRoute` untuk bottom nav 5 tab |
-| Backend | Supabase: Auth, Postgres + RLS, Storage, Edge Functions |
-| Build | GitHub Actions → `.github/workflows/build-apk.yml` |
+| Database | SQLite lokal: `drift` 2.35 + `drift_flutter` 0.3 (sqlite3 3.x membawa SQLite sendiri — `sqlite3_flutter_libs` sudah EOL, jangan dipakai) |
+| Kunci | PIN 6 digit, PBKDF2-HMAC-SHA256 100k iterasi + salt, `flutter_secure_storage` 11 |
+| Build | GitHub Actions → `.github/workflows/build-apk.yml` (tanpa secrets) |
 | App ID | `id.usahakonten.app` |
 
 ### Catatan penting Flutter 3.50
-- Material sudah dipisah ke paket **`material_ui`**. Import
-  `package:material_ui/material_ui.dart`, **bukan** `package:flutter/material.dart` (deprecated).
-- `material_ui` sudah mengekspor `GlobalMaterialLocalizations`; dari
-  `flutter_localizations` cukup `show GlobalWidgetsLocalizations`.
-- `supabase_flutter` 2.18: pakai `publishableKey:`, bukan `anonKey:` (deprecated).
+- Material dipisah ke paket **`material_ui`**: import `package:material_ui/material_ui.dart`,
+  **bukan** `package:flutter/material.dart` (deprecated).
+- `material_ui` sudah mengekspor `GlobalMaterialLocalizations`; dari `flutter_localizations` cukup
+  `show GlobalWidgetsLocalizations`.
 
 ## Struktur folder
 ```
 lib/
-  main.dart            # init intl, cek Env, init Supabase, runApp
-  app.dart             # MaterialApp.router, tema, locale id_ID
-  core/                # env, theme, router, formatters, utilitas lintas modul
-  models/              # kelas data immutable + fromJson/toJson
-  services/            # akses Supabase per domain (ProductService, dst.)
-  providers/           # Riverpod provider per domain
-  screens/<modul>/     # layar per modul (dashboard, business, content, reports, settings)
-  widgets/             # widget reusable lintas modul
-supabase/migrations/   # SQL bernomor: 0001_init.sql, 0002_xxx.sql, ...
-supabase/functions/    # Edge Functions (bila perlu)
-docs/                  # dokumentasi untuk pemilik
-test/                  # unit test (wajib untuk logika murni)
+  main.dart, app.dart
+  core/                        # theme, router, formatters, validators, app_info
+  data/database/
+    tables.dart                # tabel drift (nama tabel/kolom = versi cloud lama → export Supabase cocok)
+    app_database.dart (+ app_database.g.dart hasil generate, DI-COMMIT)
+    migrations/
+      migration_strategy.dart  # currentSchemaVersion + _upgradeSteps
+      schema_v1.dart           # index & trigger SQLite v1
+  data/repositories/           # produk(+kategori,stok), pelanggan(+supplier), transaksi(+pembayaran), hutang, invoice(+profil usaha, nomor dokumen), konten
+  features/<fitur>/            # auth, dashboard, business, content, reports, settings, shell
+  models/  services/  providers/  widgets/
+docs/                          # panduan pemilik, export-supabase-ke-json.sql
+test/                          # unit test; database_test menjalankan trigger SQLite asli (in-memory)
+test/fixtures/                 # supabase-export-sample.json (data uji palsu untuk importer)
 ```
 
 ## Konvensi kode
-1. **Layar tidak memanggil Supabase langsung.** Alur: Screen → Provider → Service → `SupabaseService.client`.
-2. **Model**: kelas immutable, `final` fields, `factory fromJson(Map)`, `Map toJson()`, `copyWith`.
-   Kolom DB `snake_case` ↔ field Dart `camelCase`. Angka uang dari DB (numeric) dibaca `(json['x'] as num).toDouble()`.
-3. **Uang & tanggal** selalu lewat `Fmt` (`lib/core/formatters.dart`). Jangan buat `NumberFormat` baru di layar.
-4. **Logika bisnis kritis ada di database** (trigger/RPC): stok, total, status lunas,
-   nomor invoice. Aplikasi tidak menghitung ulang stok sendiri.
-   Transaksi baru wajib lewat RPC `create_transaction` (atomik).
-5. **Keamanan**:
-   - Setiap tabel baru WAJIB: kolom `owner_id uuid not null default auth.uid()`,
-     `enable row level security`, policy `owner_all` (lihat 0001_init.sql bagian G).
-   - View WAJIB `with (security_invoker = true)`.
-   - Jangan pernah menaruh password/secret/service_role key di kode. URL & publishable key Supabase
-     (publik by design) ada sebagai default di workflow (`DEFAULT_SUPABASE_*`), disuntik via `--dart-define`.
-   - Jangan pakai `service_role` key di aplikasi.
-   - Kolom berakhiran `_enc` dienkripsi di perangkat (AES-GCM) sebelum dikirim.
-   - Repo ini **publik** → jangan commit keystore, `key.properties`, `.env`, atau data pelanggan.
-6. **Perubahan skema** = file migrasi baru bernomor (`0002_...sql`). Jangan edit migrasi yang sudah dijalankan pemilik.
-7. **Dependensi baru** ditambahkan hanya saat modul yang membutuhkannya dibangun.
-   Setelah menambah plugin native, cek izin `AndroidManifest.xml` & `minSdk`.
-8. **UI**: Material 3, `Card` tanpa elevation, sudut 12–16, form pakai `TextFormField` + validator berbahasa Indonesia,
-   tombol aksi utama `FilledButton`, daftar kosong → tampilkan empty state, error → `SnackBar` bahasa Indonesia.
-9. Sebelum commit: `flutter analyze` harus bersih dan `flutter test` lulus (CI menjalankan keduanya).
+1. **UI tidak menyentuh drift langsung.** Alur: Screen → Provider → (Service) → Repository → AppDatabase.
+   Provider repository di `lib/providers/app_providers.dart`.
+2. **Uang & tanggal** selalu lewat `Fmt`. Uang disimpan REAL (rupiah utuh); DateTime = detik Unix (default drift).
+3. **Logika bisnis kritis di trigger SQLite** (`schema_v1.dart`): stok, subtotal/total, paid_amount, status lunas,
+   stok kembali saat transaksi dibatalkan (soft delete)/dihapus, stok diterapkan lagi saat dipulihkan,
+   sinkron publikasi → jadwal "tayang" → ide "publish".
+   Transaksi baru WAJIB lewat `TransaksiRepository.createTransaction` (atomik + nomor dokumen).
+4. **Soft delete**: tabel utama punya `deleted_at`; query daftar selalu filter `deleted_at IS NULL`.
+   Semua id = UUID v4 teks (aman untuk merge backup antar-device).
+5. **Perubahan skema** = naikkan `currentSchemaVersion`, tambah langkah di `_upgradeSteps`, buat
+   `migrations/schema_vN.dart`, test migrasi + restore backup versi lama, lalu **minta konfirmasi pemilik
+   sebelum push** (aturan 3). Setelah ubah tabel: `dart run build_runner build` & commit `.g.dart` (CI memeriksa).
+6. **Dependensi baru** hanya saat dipakai. Plugin native → cek izin `AndroidManifest.xml` & `minSdk`.
+   JANGAN menambah izin INTERNET.
+7. **UI**: Material 3, `Card` tanpa elevation, sudut 12–16, form `TextFormField` + validator Indonesia,
+   aksi utama `FilledButton`, empty state, error → `SnackBar`/`ErrorView` bahasa Indonesia.
+8. Sebelum commit: `flutter analyze` bersih & `flutter test` lulus (CI juga menjalankan keduanya).
 
 ## Alur kerja Git
-- Kerjakan di branch sesi (`claude/...` / `ccr-...`; push → build artifact saja), lalu saat modul selesai
-  fast-forward/merge ke `main` dan push → build + Release `build-<N>` berisi `.apk`.
-- Commit kecil per modul, pesan commit Bahasa Indonesia atau Inggris yang jelas.
+- Kerjakan di branch sesi (`claude/...`/`ccr-...`; push → build artifact saja); langkah selesai →
+  push ke `main` → build + Release `build-<N>` berisi `.apk`.
 
-## Secrets GitHub Actions (diisi pemilik via browser)
-| Secret | Isi |
-|---|---|
-| `SUPABASE_URL` / `SUPABASE_KEY` | opsional — menimpa `DEFAULT_SUPABASE_*` di workflow |
-| `KEYSTORE_BASE64` | keystore rilis dalam base64 |
-| `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` | kredensial keystore |
-
-## Status Modul
-| # | Modul | Status |
+## Status Migrasi Offline (instruksi pemilik 2026-11-22)
+| # | Langkah | Status |
 |---|---|---|
-| 0 | Fondasi: skema DB, kerangka app, CI APK, dokumen | ✅ Selesai |
-| 1 | Autentikasi (admin tunggal) & Dashboard | ✅ Selesai |
-| 2 | Master data: kategori, produk/jasa, pelanggan, supplier, scanner barcode | ⏳ Berikutnya |
-| 3 | Transaksi penjualan/pembelian, pembayaran, hutang/piutang | ⬜ |
-| 4 | Invoice PDF, share WhatsApp/email, printer struk Bluetooth | ⬜ |
-| 5 | Laporan + export Excel/PDF | ⬜ |
-| 6 | Konten: ide (kanban), aset produksi, relasi produk | ⬜ |
-| 7 | Konten: kalender/jadwal, publikasi & reach | ⬜ |
-| 8 | Profil usaha, enkripsi field, backup JSON/CSV | ⬜ |
+| 1 | Hapus Supabase; skema drift + trigger; 6 repository; PIN lokal; workflow tanpa secrets | ✅ |
+| 2 | Backup & Restore .zip (data.json, meta.json, attachments/), share_plus, file_picker, Replace/Merge, import export Supabase | ⏳ berikutnya |
+| 3 | Backup otomatis mingguan (rotasi 4) + "Kirim backup terakhir ke Drive" | ⬜ |
+| 4 | Master data UI: produk/jasa, kategori, pelanggan, supplier, scanner barcode | ⬜ |
+| 5 | Transaksi, pembayaran, hutang/piutang UI | ⬜ |
+| 6 | Invoice PDF + share + printer Bluetooth; laporan + export Excel/PDF | ⬜ |
+| 7 | Konten: kanban ide, aset (lampiran lokal), kalender, publikasi & reach | ⬜ |
 
 ## Pola yang sudah ada (pakai ulang!)
-- Auth guard: `routerProvider` (`lib/core/router.dart`) redirect ke `/login` berdasar `AuthService.isLoggedIn`,
-  di-refresh oleh stream `onAuthStateChange`. Rute di luar tab (form, detail) didaftarkan di level atas, dibuka dengan `context.push`.
-- Data layar: `FutureProvider.autoDispose` yang `ref.watch(currentUserProvider)` → otomatis reload saat ganti user.
-  Pull-to-refresh: `RefreshIndicator(onRefresh: () => ref.refresh(x.future))`.
-- Error: `ErrorView(error, onRetry)` + `ErrorView.friendly(e)` untuk pesan Indonesia.
-- Widget: `StatCard`, `SectionCard`, `EmptyHint`, `MiniBarChart`.
-- WhatsApp: `WhatsAppService.send(phone:, message:)` (wa.me, normalisasi 08xx → 628xx).
-- Validasi form: `Validators` (`lib/core/validators.dart`), angka "1.500.000" → `Validators.parseNumber`.
-- Logika murni ditaruh sebagai fungsi top-level di service agar bisa di-unit-test (contoh `dashboard_service.dart`).
+- Gerbang PIN: `authControllerProvider` (loading/needsSetup/locked/unlocked) → redirect di `routerProvider`.
+  Auto-kunci 60 dtk di background. Reset: `runResetAppFlow` (dialog peringatan + ketik "HAPUS").
+- Data reaktif: repository `watch*()` (Stream) untuk daftar; Beranda: `db.tableUpdates()` → `invalidateSelf`.
+- Error: `ErrorView(error, onRetry)` + `ErrorView.friendly(e)` (pesan constraint SQLite → Indonesia).
+- Widget: `StatCard`, `SectionCard`, `EmptyHint`, `MiniBarChart`, `PinPad`.
+- WhatsApp: `WhatsAppService.send(phone:, message:)` (wa.me lewat aplikasi WhatsApp).
+- Validasi: `Validators`; angka "1.500.000" → `Validators.parseNumber`.
+- Test DB: `AppDatabase(NativeDatabase.memory())`. Test PIN: `FakeSecureStorage` di `test/pin_test.dart`.
+- Urutan tabel backup/restore/reset: `backupTableOrder` (`app_database.dart`).
+- Folder lampiran: `AppResetService.attachmentsDir()` (`<documents>/attachments`).
 
 ## Catatan Pelajaran
-- Supabase MCP: migrasi diterapkan Claude langsung (`apply_migration`), file SQL tetap disimpan di `supabase/migrations/`.
-  Project free tier bisa ter-pause (INACTIVE) → `restore_project`, tunggu `ACTIVE_HEALTHY`.
-  Migrasi yang menyentuh skema `auth` memicu prompt persetujuan ke pemilik (timeout 60 dtk) → beri tahu pemilik dulu.
-- Smoke test di DB asli tanpa meninggalkan data: blok `do $$ ... raise exception 'HASIL ...' $$` (otomatis rollback).
-- 2026-11-22: Skema 0001 diuji di Postgres 16 lokal dengan mock `auth.uid()`:
-  stok, status bayar, v_debts, hapus transaksi (stok kembali), sinkron publikasi→jadwal→ide, dan isolasi RLS antar user semuanya lolos.
-- FK cascade berjalan SETELAH baris induk terhapus → trigger item tidak bisa membaca `transactions.type`;
-  karena itu pengembalian stok saat hapus transaksi dilakukan di trigger `BEFORE DELETE` pada `transactions`.
-- Jangan `force row level security`: role `postgres` (SQL Editor/backup) perlu tetap bisa membaca.
-- Kunci debug di runner GitHub berubah tiap build → tanpa keystore rilis, update APK gagal ("konflik paket"). Keystore rilis wajib via secrets.
-- Workflow memakai `concurrency: cancel-in-progress` → push baru ke branch yang sama MEMBATALKAN build yang sedang jalan.
-- Repo publik: keystore dikirim ke pemilik lewat kanal privat, tidak di-commit.
+- 2026-11-22 MIGRASI OFFLINE: Supabase dihapus total atas instruksi pemilik. Project Supabase berisi 0 baris
+  (dicek via MCP) → tidak ada data yang dipindah; skrip export tetap di `docs/` untuk jaga-jaga.
+- SQLite trigger tidak bisa mengubah NEW → total/status dihitung ulang dengan UPDATE (`_recalc`).
+- Cascade/hapus induk: trigger item cek `transactions.deleted_at IS NULL` agar stok tidak dikembalikan dua kali.
+- `wipeAllData`: menghapus item transaksi memicu trigger stok → kosongkan `stock_movements` lagi di akhir.
+- Manifest: tanpa INTERNET & `allowBackup=false` (flutter_secure_storage bermasalah dengan Auto Backup Android).
+- Kunci debug acak per-runner membuat update APK gagal → `debug.keystore` tetap di-commit.
+- Workflow `concurrency: cancel-in-progress`: push baru ke branch sama membatalkan build yang berjalan.
+- Era cloud (arsip): skema Postgres pernah diuji lengkap; pola trigger yang sama di-port ke SQLite.

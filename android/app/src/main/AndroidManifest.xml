@@ -1,8 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Wajib: akses Supabase -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Sengaja TANPA izin INTERNET: aplikasi 100% offline. Berbagi backup
+         (WhatsApp/Drive) memakai aplikasi lain lewat intent, tidak butuh izin ini. -->
     <application
         android:label="UsahaKonten"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

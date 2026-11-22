@@ -12,3 +12,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Kunci debug tetap untuk CI (kredensial standar, bukan rahasia)
+!app/debug.keystore

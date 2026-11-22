@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/formatters.dart';
+import '../../data/repositories/hutang_repository.dart';
 import '../../models/dashboard_summary.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../services/whatsapp_service.dart';
@@ -122,7 +123,7 @@ class _DashboardBody extends StatelessWidget {
           child: s.dueDebts.isEmpty
               ? const EmptyHint('Tidak ada hutang/piutang yang jatuh tempo.')
               : Column(children: [
-                  for (final d in s.dueDebts.take(5)) _DebtTile(debt: d),
+                  for (final d in s.dueDebts.take(5)) _DebtTile(debt: d, today: s.today),
                 ]),
         ),
         const SizedBox(height: 12),
@@ -181,10 +182,10 @@ class _DashboardBody extends StatelessWidget {
                   ListTile(
                     dense: true,
                     leading: const Icon(Icons.play_circle_outline),
-                    title: Text(sc.title,
+                    title: Text(sc.ideaTitle,
                         maxLines: 1, overflow: TextOverflow.ellipsis),
                     subtitle: Text(
-                        '${_platformLabel(sc.platform)} • ${Fmt.dateTime(sc.scheduledAt)}'),
+                        '${_platformLabel(sc.schedule.platform)} • ${Fmt.dateTime(sc.schedule.scheduledAt)}'),
                   ),
             ],
           ),
@@ -241,8 +242,9 @@ class _Grid extends StatelessWidget {
 }
 
 class _DebtTile extends StatelessWidget {
-  const _DebtTile({required this.debt});
-  final DebtItem debt;
+  const _DebtTile({required this.debt, required this.today});
+  final DebtRow debt;
+  final DateTime today;
 
   Future<void> _remind(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -260,7 +262,7 @@ class _DebtTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final overdue = debt.isOverdue;
+    final overdue = debt.isOverdue(today);
     return ListTile(
       dense: true,
       leading: Icon(

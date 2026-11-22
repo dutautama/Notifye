@@ -1,118 +1,70 @@
-# Arsitektur UsahaKonten
-
-## Gambaran besar
+# Arsitektur UsahaKonten (100% offline)
 
 ```
-┌──────────────── Ponsel Android ────────────────┐
-│ Flutter App (UsahaKonten.apk)                  │
-│  Screens ─► Providers (Riverpod) ─► Services   │
-│  PDF/Excel dibuat di perangkat (pdf, excel)     │
-│  WhatsApp/email (url_launcher, share_plus)     │
-│  Printer thermal Bluetooth, scanner barcode     │
-└───────────────┬────────────────────────────────┘
-                │ HTTPS (supabase_flutter, JWT user)
-┌───────────────▼──────────── Supabase ──────────┐
-│ Auth (1 admin, signup dimatikan)               │
-│ Postgres + RLS (owner_id = auth.uid())          │
-│   trigger: stok, total, status lunas, nomor doc │
-│   RPC: create_transaction, adjust_stock          │
-│   view: v_debts, v_daily_sales, v_low_stock,     │
-│         v_content_performance                    │
-│ Storage bucket privat "assets/<user_id>/..."    │
-│ Edge Functions (opsional: tugas server-side)    │
-└─────────────────────────────────────────────────┘
-GitHub: push ─► Actions (analyze, test, build) ─► Artifact / Release .apk
+┌──────────────────────────── HP Android ────────────────────────────┐
+│ UI (features/*)  ──►  Provider (Riverpod)  ──►  Repository (6)    │
+│                                                     │              │
+│                                                     ▼              │
+│                       AppDatabase (drift)  ──►  SQLite file        │
+│                       └ trigger: stok, total, status lunas, konten │
+│ PIN: PBKDF2 hash ──► flutter_secure_storage (Android Keystore)     │
+│ Lampiran: <app-documents>/attachments/                             │
+│ Backup .zip ──► share_plus ──► Google Drive / WhatsApp / Files     │
+└────────────────────────────────────────────────────────────────────┘
+GitHub: push main ─► Actions (generate-check, analyze, test, build) ─► Release .apk
 ```
 
-## Bottom navigation (5 tab)
+Tidak ada server. Manifest Android sengaja **tanpa izin INTERNET**.
 
-| Tab | Isi |
-|---|---|
-| **Beranda** | ringkasan omzet, piutang jatuh tempo, stok menipis, jadwal konten minggu ini |
-| **Usaha** | Kasir/transaksi baru, Produk & Jasa, Pelanggan, Supplier, Hutang/Piutang |
-| **Konten** | Papan ide (kanban per status), Kalender, Publikasi & Reach |
-| **Laporan** | Penjualan, Stok, Hutang/Piutang, Performa Konten → Excel/PDF |
-| **Lainnya** | Profil usaha, printer Bluetooth, backup/export, keamanan, keluar |
+## Keputusan & trade-off
 
-## Skema data (ringkas)
+| Keputusan | Alasan | Trade-off |
+|---|---|---|
+| SQLite + drift | Offline, cepat, query bertipe, migrasi terstruktur | Data hilang jika HP hilang tanpa backup → backup .zip + otomatis mingguan |
+| Logika stok/total di trigger | Konsisten apa pun layarnya, teruji di unit test | Perubahan logika = perubahan skema (wajib konfirmasi pemilik) |
+| UUID teks sebagai id | Merge backup antar-HP tanpa bentrok | Sedikit lebih besar dari integer |
+| Soft delete (`deleted_at`) | Pembatalan bisa dipulihkan, stok otomatis kembali | Query wajib filter `deleted_at IS NULL` |
+| PIN PBKDF2 100k + jeda bertingkat | PIN 6 digit hanya 1 juta kombinasi | Verifikasi ±0,5–1 dtk (jalan di isolate, UI tidak macet) |
+| Debug keystore tetap di repo | Update APK tanpa uninstall (uninstall = data hilang) | Siapa pun bisa menandatangani APK dengan kunci ini; jangan instal APK dari sumber lain |
+| Database tidak dienkripsi (SQLCipher) | Lebih sederhana; file DB ada di penyimpanan privat aplikasi | HP yang di-root bisa membaca file; opsi SQLCipher bisa ditambah nanti |
+
+## Skema data (v1)
 
 ```
-business_profile (1 baris per user)        doc_counters (penomoran INV/PO)
+meta (schema_version, ...)            business_profile (1 baris)     doc_counters (INV/PO per bulan)
 
-categories ─┐
-            └─< products >──────────────┐
-customers ──< transactions >── suppliers │
-               │  ├─< transaction_items >┘ (stok otomatis via trigger)
-               │  └─< payments            (paid_amount & status via trigger)
-               └─ v_debts (piutang = sale belum lunas, hutang = purchase belum lunas)
-products ──< stock_movements              (riwayat keluar/masuk stok)
+categories ─< products >──────────────────────────────┐
+customers ──< transactions >── suppliers              │
+               ├─< transaction_items >────────────────┘  (trigger: stok & total)
+               └─< payments                              (trigger: paid_amount & status)
+               hutang/piutang = transactions WHERE status <> 'lunas' (HutangRepository)
+products ──< stock_movements                             (riwayat stok)
 
-content_ideas ─┬─< content_assets          (link Drive/video/naskah/file Storage)
-               ├─< content_schedules       (platform + waktu tayang → kalender)
+content_ideas ─┬─< content_assets          (link / file lampiran lokal)
+               ├─< content_schedules       (kalender)
                ├─< content_publications    (link post + views/reach/likes/...)
-               └─< content_product_links >── products   (relasi 2 arah)
+               └─< content_product_links >── products
 ```
 
-Semua tabel memiliki `owner_id` + RLS. Detail lengkap: `supabase/migrations/0001_init.sql`.
+Kolom `created_at`, `updated_at`, `deleted_at` ada di semua tabel utama.
 
-### Aturan otomatis di database
-| Kejadian | Efek |
+## Repository
+| File | Tanggung jawab |
 |---|---|
-| Item penjualan ditambah | stok produk (yang `track_stock`) berkurang + catat `stock_movements` |
-| Item pembelian ditambah | stok bertambah |
-| Transaksi dihapus | stok dikembalikan |
-| Item berubah | subtotal & total transaksi dihitung ulang |
-| Pembayaran dicatat/dihapus | `paid_amount` & status `belum/sebagian/lunas` dihitung ulang |
-| Transaksi baru via RPC | nomor otomatis `INV-YYYYMM-0001` / `PO-YYYYMM-0001` |
-| Publikasi konten dicatat | jadwal terkait → `tayang`, ide → `publish` |
+| `produk_repository.dart` | produk/jasa, kategori, penyesuaian stok, stok menipis, riwayat stok |
+| `pelanggan_repository.dart` | pelanggan & supplier |
+| `transaksi_repository.dart` | buat transaksi atomik, batal/pulihkan, pembayaran, omzet harian |
+| `hutang_repository.dart` | daftar hutang & piutang (transaksi belum lunas) |
+| `invoice_repository.dart` | nomor dokumen, profil usaha, data lengkap invoice |
+| `konten_repository.dart` | ide, status, jadwal, relasi ide ↔ produk |
 
-## Keamanan
-1. **Auth**: email+password, satu akun admin, pendaftaran publik dimatikan.
-2. **RLS** di semua tabel & storage; role `anon` dicabut seluruh aksesnya; view `security_invoker`.
-3. **Enkripsi**: Supabase mengenkripsi data saat disimpan (AES-256) & saat dikirim (TLS).
-   Untuk kolom sangat sensitif (`*_enc`: info rekening, catatan privat pelanggan)
-   aplikasi mengenkripsi lagi di perangkat (AES-GCM, kunci dari PIN/passphrase
-   pemilik via PBKDF2, disimpan di Android Keystore lewat `flutter_secure_storage`).
-4. **Sesi** disimpan aman oleh `supabase_flutter`; opsi kunci aplikasi dengan PIN/biometrik (Modul 8).
-5. **Secrets** hanya di GitHub Secrets; keystore tidak di-commit (repo publik).
-6. **Backup**: export JSON/CSV semua tabel dari aplikasi → bagikan ke Google Drive (Modul 8),
-   plus opsi workflow terjadwal backup database.
-
-## Rencana paket per modul
-| Modul | Paket utama |
-|---|---|
-| 1 Auth & Dashboard | supabase_flutter, flutter_riverpod, go_router, fl_chart |
-| 2 Master data | mobile_scanner (barcode) |
-| 3 Transaksi | — (RPC Supabase) |
-| 4 Invoice & cetak | pdf, printing, share_plus, url_launcher, print_bluetooth_thermal, esc_pos_utils_plus |
-| 5 Laporan | excel, pdf, path_provider, share_plus |
-| 6–7 Konten | table_calendar, file_picker, url_launcher |
-| 8 Profil, enkripsi, backup | cryptography, flutter_secure_storage, local_auth |
-
-## Struktur proyek target
+## Format backup (langkah 2)
 ```
-lib/
-├── main.dart
-├── app.dart
-├── core/        env.dart, theme.dart, router.dart, formatters.dart, validators.dart, crypto.dart
-├── models/      product.dart, category.dart, customer.dart, supplier.dart, transaction.dart,
-│                payment.dart, debt.dart, content_idea.dart, content_asset.dart,
-│                content_schedule.dart, content_publication.dart, business_profile.dart
-├── services/    supabase_service.dart, auth_service.dart, product_service.dart,
-│                party_service.dart, transaction_service.dart, report_service.dart,
-│                content_service.dart, invoice_pdf_service.dart, excel_service.dart,
-│                printer_service.dart, whatsapp_service.dart, backup_service.dart
-├── providers/   *_provider.dart per domain
-├── screens/
-│   ├── auth/        login_screen.dart
-│   ├── shell/       main_shell.dart
-│   ├── dashboard/   dashboard_screen.dart
-│   ├── business/    business_home, product_list/form, customer_list/form,
-│   │                supplier_list/form, transaction_form, transaction_detail, debt_list
-│   ├── content/     content_home (kanban), idea_detail, idea_form, calendar_screen,
-│   │                publication_form
-│   ├── reports/     reports_screen, sales_report, stock_report, debt_report, content_report
-│   ├── settings/    settings_screen, business_profile, printer_settings, backup_screen
-│   └── setup/       config_missing_screen.dart
-└── widgets/     coming_soon, empty_state, money_text, status_chip, search_field, ...
+UsahaKonten-backup-YYYYMMDD-HHmm.zip
+├── meta.json      {"format":"usahakonten-backup","schema_version":1,"app_version":"...","created_at":"..."}
+├── data.json      {"format":"usahakonten-backup","schema_version":1,"tables":{"products":[...], ...}}
+└── attachments/   file lampiran (gambar produk, aset konten)
 ```
+Restore: validasi `schema_version` (tidak boleh lebih baru dari aplikasi) → pilih **Replace** atau
+**Merge** (berdasarkan id, baris `updated_at` terbaru menang). Export Supabase lama (`docs/export-supabase-ke-json.sql`)
+memakai format `data.json` yang sama.

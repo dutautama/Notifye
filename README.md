@@ -1,63 +1,29 @@
 # UsahaKonten
 
-Aplikasi Android untuk **manajemen usaha jasa/digital** (produk, transaksi, stok,
-hutang/piutang, invoice, laporan) dan **manajemen konten media sosial** ala Notion
+Aplikasi Android **100% offline** untuk manajemen usaha jasa/digital (produk, transaksi, stok,
+hutang/piutang, invoice, laporan) dan manajemen konten media sosial ala Notion
 (ide → produksi → review → publish, aset, kalender, reach), saling terhubung.
 
-Dibangun dengan Flutter + Supabase, APK dibuat otomatis oleh GitHub Actions.
-**Semua langkah di bawah bisa dikerjakan dari ponsel Android.**
+- Data tersimpan **hanya di HP** (SQLite). Tanpa akun, tanpa server, tanpa internet.
+- Dikunci dengan **PIN 6 digit**.
+- Pindah HP / cadangan: menu **Backup & Restore** (file `.zip` → Google Drive/WhatsApp).
+- APK dibuat otomatis oleh GitHub Actions setiap ada perubahan di branch `main`.
 
----
+## Instal (dari HP)
 
-## 1. Supabase (sudah dikerjakan Claude lewat konektor)
+1. Buka halaman **Releases** repo ini (atau link yang dikirim Claude) → build terbaru →
+   bagian **Assets** → ketuk `UsahaKonten-...apk`.
+2. Buka file yang terunduh → jika diminta, **Setelan → Izinkan dari sumber ini** → **Instal**.
+3. Buka aplikasi → buat **PIN 6 digit** (masukkan 2x).
 
-Project `nxxdqwihakidyhkonxgm` (Singapore): tabel, trigger, RLS, storage, dan pengerasan keamanan
-sudah diterapkan (`supabase/migrations/0001`–`0003`). Security Advisor: 0 temuan.
-Database hanya menerima **satu akun admin** (migrasi 0003).
+Update berikutnya cukup instal APK baru di atas yang lama — data tetap ada.
 
-Yang dikerjakan pemilik: membuat akun admin di **Authentication → Users → Add user → Create new user**
-(centang **Auto Confirm User**).
+## Penting
 
-## 2. Secrets GitHub (hanya kunci tanda tangan APK)
+- **PIN tidak bisa dipulihkan.** Lupa PIN = reset aplikasi (semua data terhapus) lalu restore dari backup.
+- **Uninstall aplikasi menghapus semua data.** Selalu backup sebelum ganti/reset HP.
 
-URL & publishable key Supabase sudah tertanam di workflow (keduanya memang publik).
-Isi 4 secret di **Settings → Secrets and variables → Actions → New repository secret**:
-
-| Name | Value |
-|---|---|
-| `KEYSTORE_BASE64` | isi file `KEYSTORE_BASE64.txt` yang dikirim Claude |
-| `KEYSTORE_PASSWORD` | dari file `PETUNJUK_SECRETS.txt` |
-| `KEY_ALIAS` | `usahakonten` |
-| `KEY_PASSWORD` | dari file `PETUNJUK_SECRETS.txt` |
-
-> Keystore membuat setiap APK baru bisa **meng-update** aplikasi lama tanpa uninstall.
-> Simpan file `usahakonten-release.jks` di Google Drive pribadi sebagai cadangan.
-
-## 3. Bangun & unduh APK
-
-- Build berjalan otomatis setiap ada push ke `main`, `claude/**`, atau `ccr-**`.
-- Setiap push ke `main` otomatis membuat **Release** berisi APK (Claude yang melakukan push).
-- Tunggu ±8–12 menit sampai tanda ✅ hijau.
-
-**Unduh (cara termudah):** halaman **Releases** (di beranda repo, kolom kanan/bawah) →
-build terbaru → **Assets** → ketuk `UsahaKonten-...apk`.
-
-**Atau lewat Artifact:** Actions → run terbaru → gulir ke **Artifacts** →
-`UsahaKonten-APK-<nomor>` → file `.zip` terunduh → buka di aplikasi **Files** →
-ketuk zip → **Ekstrak** → dapat file `.apk`.
-
-## 4. Instal di ponsel
-
-1. Ketuk file `.apk` → jika muncul peringatan, **Setelan → Izinkan dari sumber ini**.
-2. **Instal** → **Buka**.
-3. Jika Play Protect bertanya, pilih **Tetap instal** (aplikasi ini milik Anda sendiri).
-
-## 5. Backup
-
-Sampai modul Backup selesai: Supabase → **Table Editor** → pilih tabel → **Export → CSV**.
-
----
-
-Dokumen lain:
-- [docs/ARSITEKTUR.md](docs/ARSITEKTUR.md) — arsitektur, skema data, rencana modul
+## Dokumen lain
+- [docs/ARSITEKTUR.md](docs/ARSITEKTUR.md) — arsitektur, skema data, rencana langkah
+- [docs/export-supabase-ke-json.sql](docs/export-supabase-ke-json.sql) — export data lama dari Supabase (arsip)
 - [CLAUDE.md](CLAUDE.md) — aturan proyek untuk sesi pengembangan berikutnya

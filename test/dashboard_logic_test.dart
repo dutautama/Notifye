@@ -1,26 +1,28 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usahakonten/core/validators.dart';
-import 'package:usahakonten/models/dashboard_summary.dart';
-import 'package:usahakonten/services/auth_service.dart';
+import 'package:usahakonten/data/repositories/hutang_repository.dart';
+import 'package:usahakonten/data/repositories/transaksi_repository.dart';
 import 'package:usahakonten/services/dashboard_service.dart';
 import 'package:usahakonten/services/whatsapp_service.dart';
 
-DebtItem debt(String kind, double remaining, DateTime? due) => DebtItem(
-      id: '$kind$remaining',
+DebtRow debt(String kind, double remaining, DateTime? due) => DebtRow(
+      transactionId: '$kind$remaining',
       kind: kind,
       number: 'X',
+      trxDate: DateTime(2026, 11, 1),
+      dueDate: due,
+      total: remaining,
+      paidAmount: 0,
       partyName: 'A',
       partyPhone: null,
-      remaining: remaining,
-      dueDate: due,
-      isOverdue: false,
+      partyId: null,
     );
 
 void main() {
   test('deret 7 hari mengisi hari kosong dengan 0', () {
     final s = buildDailySeries([
-      {'trx_date': '2026-11-20', 'omzet': 150000, 'trx_count': 2},
-      {'trx_date': '2026-11-22', 'omzet': 50000.5, 'trx_count': 1},
+      DailySalesRow(DateTime(2026, 11, 20), 150000, 2),
+      DailySalesRow(DateTime(2026, 11, 22), 50000.5, 1),
     ], from: DateTime(2026, 11, 16), to: DateTime(2026, 11, 22));
     expect(s.length, 7);
     expect(s.first.omzet, 0);
@@ -31,6 +33,16 @@ void main() {
   test('deret melewati pergantian bulan', () {
     final s = buildDailySeries([], from: DateTime(2026, 11, 28), to: DateTime(2026, 12, 2));
     expect(s.map((e) => e.date.day), [28, 29, 30, 1, 2]);
+  });
+
+  test('jumlah omzet & transaksi per rentang', () {
+    final rows = [
+      DailySalesRow(DateTime(2026, 10, 31), 100, 1),
+      DailySalesRow(DateTime(2026, 11, 1), 200, 2),
+      DailySalesRow(DateTime(2026, 11, 22), 300, 3),
+    ];
+    expect(sumOmzet(rows, DateTime(2026, 11, 1), DateTime(2026, 11, 22)), 500);
+    expect(sumCount(rows, DateTime(2026, 11, 22), DateTime(2026, 11, 22)), 3);
   });
 
   test('ringkasan & filter hutang/piutang', () {
@@ -45,16 +57,10 @@ void main() {
     expect(t.receivableTotal, 180);
     expect(t.receivableCount, 3);
     expect(t.payableTotal, 70);
-    final due = filterDueDebts(list, today: today, limit: today.add(const Duration(days: 7)));
+    final due = filterDueDebts(list, limit: today.add(const Duration(days: 7)));
     expect(due.map((d) => d.remaining), [50, 100]);
-  });
-
-  test('hitung status konten', () {
-    expect(countStatuses([
-      {'status': 'ide'},
-      {'status': 'ide'},
-      {'status': 'publish'},
-    ]), {'ide': 2, 'produksi': 0, 'review': 0, 'publish': 1});
+    expect(due.first.isOverdue(today), isTrue);
+    expect(due.last.isOverdue(today), isFalse);
   });
 
   test('normalisasi nomor WhatsApp', () {
@@ -63,11 +69,6 @@ void main() {
     expect(WhatsAppService.normalizePhone('81234567890'), '6281234567890');
     expect(WhatsAppService.normalizePhone('123'), isNull);
     expect(WhatsAppService.normalizePhone(null), isNull);
-  });
-
-  test('terjemahan error login', () {
-    expect(translateAuthError('Invalid login credentials', 'invalid_credentials'),
-        'Email atau password salah.');
   });
 
   test('validator & parse angka', () {

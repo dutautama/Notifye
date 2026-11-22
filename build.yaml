@@ -1,0 +1,8 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # Nama kolom snake_case otomatis dari nama getter camelCase.
+          case_from_dart_to_sql: snake_case
+          store_date_time_values_as_text: false
