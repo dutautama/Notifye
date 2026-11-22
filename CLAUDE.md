@@ -128,6 +128,18 @@ test/fixtures/                 # supabase-export-sample.json (data uji palsu unt
 | 7 | Konten: kanban ide, aset (link/lampiran), relasi produk, kalender, publikasi & reach | ✅ |
 
 Semua fitur wajib selesai (skema v1, tidak ada perubahan skema sejak migrasi offline).
+
+## Roadmap lanjutan (permintaan pemilik 2026-11-22)
+| # | Modul | Status |
+|---|---|---|
+| 1–8 | Fondasi + usaha + backup/restore | ✅ |
+| 9–11 | Konten (ide → publish → kalender → reach) | ✅ |
+| 12 | Catatan (markdown ringan, tag, pin, arsip, FTS5, lampiran, auto-save 1 dtk, share teks) | ⏳ menunggu konfirmasi skema v2 |
+| 13 | Daftar bacaan/tontonan (tipe, status, rating, progress, statistik, terima share link) | ⏳ menunggu konfirmasi skema v2 |
+| 14 | Tautan antar-modul (catatan ↔ produk/pelanggan/transaksi/ide/bacaan; bacaan ↔ ide) | ⏳ menunggu konfirmasi skema v2 |
+| 15 | Beranda ringkas + navigasi baru + polish | ⬜ |
+Usulan skema v2 dikirim ke pemilik 2026-11-22 (lihat percakapan); JANGAN push perubahan skema sebelum "setuju".
+Hasil cek: FTS5 tersedia di SQLite 3.54 bawaan sqlite3 3.x; receive_sharing_intent 1.9.0 aktif.
 iOS: kode & build IPA unsigned ✅; penandatanganan/TestFlight ⏳ menunggu keputusan pemilik.
 Ide lanjutan (belum diminta): enkripsi database (SQLCipher), backup terenkripsi password, kunci biometrik.
 
