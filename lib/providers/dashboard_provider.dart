@@ -10,6 +10,8 @@ final dashboardServiceProvider = Provider<DashboardService>(
     hutang: ref.watch(hutangRepositoryProvider),
     produk: ref.watch(produkRepositoryProvider),
     konten: ref.watch(kontenRepositoryProvider),
+    catatan: ref.watch(catatanRepositoryProvider),
+    koleksi: ref.watch(koleksiRepositoryProvider),
   ),
 );
 

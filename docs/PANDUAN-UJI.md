@@ -20,5 +20,17 @@
 | 16 | (Opsional) **Lainnya → Printer Bluetooth** → pair printer di Setelan HP → Cari printer → pilih → Cetak halaman tes; lalu **Cetak struk** dari transaksi | Struk tercetak |
 | 17 | (Opsional) Produk → ikon scan → arahkan ke barcode | Produk ditemukan / tawaran tambah baru |
 
+## Modul baru (v1.3.0)
+| # | Langkah | Hasil yang benar |
+|---|---|---|
+| 18 | Tab **Catatan → Catatan baru** → ketik judul & isi, pakai tombol ☑ untuk checklist → kembali | Catatan tersimpan otomatis (tanpa tombol Simpan) |
+| 19 | Buka catatan → ikon 👁 (mode baca) → ketuk checkbox | Tercentang & tercoret |
+| 20 | Kolom pencarian Catatan → ketik sebagian kata | Catatan yang cocok muncul |
+| 21 | Di catatan: **Ditautkan ke → +** → Produk/jasa → pilih Kaos; buka produk Kaos | Catatan muncul di bagian **Catatan terkait** |
+| 22 | Chrome/YouTube → **Bagikan** → pilih **UsahaKonten** (masukkan PIN bila terkunci) | Form **Tambah ke Koleksi** terisi judul & link → Simpan |
+| 23 | Tab **Koleksi** → item → status **Sedang**, isi total episode, ketuk **+1** | Progress bertambah; saat penuh status jadi **Selesai** |
+| 24 | **Beranda** | Kartu "Sedang dibaca / ditonton" & "Catatan terbaru" tampil |
+| 25 | Backup → pulihkan di HP lain | Catatan, lampiran, & koleksi ikut kembali |
+
 Izin yang akan diminta Android (hanya saat fitur dipakai): **Kamera** (scan barcode),
 **Perangkat di sekitar** (printer Bluetooth). Aplikasi tidak meminta izin internet.

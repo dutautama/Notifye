@@ -19,6 +19,8 @@ class DashboardSummary {
     required this.lowStock,
     required this.upcomingSchedules,
     required this.contentStatusCounts,
+    this.recentNotes = const [],
+    this.inProgress = const [],
   });
 
   final DateTime today;
@@ -42,6 +44,10 @@ class DashboardSummary {
 
   /// {'ide': 3, 'produksi': 1, 'review': 0, 'publish': 5}
   final Map<String, int> contentStatusCounts;
+
+  /// Catatan terbaru (sematan dulu) & item koleksi yang sedang dibaca/ditonton.
+  final List<Note> recentNotes;
+  final List<WatchlistItem> inProgress;
 }
 
 class DailySales {

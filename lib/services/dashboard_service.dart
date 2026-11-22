@@ -1,4 +1,6 @@
+import '../data/repositories/catatan_repository.dart';
 import '../data/repositories/hutang_repository.dart';
+import '../data/repositories/koleksi_repository.dart';
 import '../data/repositories/konten_repository.dart';
 import '../data/repositories/produk_repository.dart';
 import '../data/repositories/transaksi_repository.dart';
@@ -6,12 +8,21 @@ import '../models/dashboard_summary.dart';
 
 /// Menyusun data Beranda dari repository (tanpa akses database langsung).
 class DashboardService {
-  DashboardService({required this.transaksi, required this.hutang, required this.produk, required this.konten});
+  DashboardService({
+    required this.transaksi,
+    required this.hutang,
+    required this.produk,
+    required this.konten,
+    this.catatan,
+    this.koleksi,
+  });
 
   final TransaksiRepository transaksi;
   final HutangRepository hutang;
   final ProdukRepository produk;
   final KontenRepository konten;
+  final CatatanRepository? catatan;
+  final KoleksiRepository? koleksi;
 
   Future<DashboardSummary> load({DateTime? now}) async {
     final clock = now ?? DateTime.now();
@@ -42,6 +53,8 @@ class DashboardService {
       lowStock: lowStock,
       upcomingSchedules: schedules,
       contentStatusCounts: statusCounts,
+      recentNotes: await catatan?.recent() ?? const [],
+      inProgress: await koleksi?.inProgress() ?? const [],
     );
   }
 }

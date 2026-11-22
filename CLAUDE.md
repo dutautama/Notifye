@@ -136,8 +136,8 @@ Semua fitur wajib selesai (skema v1, tidak ada perubahan skema sejak migrasi off
 | 9–11 | Konten (ide → publish → kalender → reach) | ✅ |
 | 12 | Catatan (markdown ringan, tag, pin, arsip, FTS5, lampiran, auto-save 1 dtk, share teks) | ✅ v1.1.0 |
 | 13 | Daftar bacaan/tontonan (tipe, status, rating, progress, statistik, terima share link) | ✅ v1.2.0 |
-| 14 | Tautan antar-modul (catatan ↔ produk/pelanggan/transaksi/ide/bacaan; bacaan ↔ ide) | ⬜ |
-| 15 | Beranda ringkas + navigasi baru + polish | ⬜ |
+| 14 | Tautan antar-modul (catatan ↔ produk/pelanggan/transaksi/ide/bacaan; bacaan ↔ ide) | ✅ v1.3.0 |
+| 15 | Beranda ringkas + navigasi baru + polish | ✅ v1.3.0 |
 Skema v2 DISETUJUI pemilik 2026-11-22 & dirilis (6 tabel + notes_fts). Perubahan skema berikutnya = v3, wajib konfirmasi lagi.
 Hasil cek: FTS5 tersedia di SQLite 3.54 bawaan sqlite3 3.x; receive_sharing_intent 1.9.0 aktif.
 iOS: kode & build IPA unsigned ✅; penandatanganan/TestFlight ⏳ menunggu keputusan pemilik.
@@ -148,6 +148,8 @@ Ide lanjutan (belum diminta): enkripsi database (SQLCipher), backup terenkripsi 
   Auto-kunci 60 dtk di background. Reset: `runResetAppFlow` (dialog peringatan + ketik "HAPUS").
 - Data reaktif: repository `watch*()` (Stream) untuk daftar; Beranda: `db.tableUpdates()` → `invalidateSelf`.
 - Error: `ErrorView(error, onRetry)` + `ErrorView.friendly(e)` (pesan constraint SQLite → Indonesia).
+- Catatan terkait di halaman mana pun: `RelatedNotesSection(entityType: LinkType.x, entityId: id)`.
+  Pemilih entitas: `pickLinkTarget(context, types: [...])` (`features/notes/link_targets.dart`).
 - Widget: `StatCard`, `SectionCard`, `EmptyHint`, `MiniBarChart`, `PinPad`, `TwoColumnGrid`, `MonthCalendar`,
   `MoneyField`/`QtyField` (format ribuan), `AttachmentImage`, `BarcodeScannerPage`, `confirmDialog`, `showSnack`.
 - Lampiran: `AttachmentService.pick(folder)` → path relatif di `attachments/` (ikut backup).

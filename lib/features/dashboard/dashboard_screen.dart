@@ -8,6 +8,8 @@ import '../../models/dashboard_summary.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../services/whatsapp_service.dart';
 import '../../widgets/error_view.dart';
+import '../collection/collection_screen.dart';
+import '../notes/markdown_text.dart';
 import '../../widgets/mini_bar_chart.dart';
 import '../../widgets/section_card.dart';
 import '../../widgets/stat_card.dart';
@@ -163,6 +165,42 @@ class _DashboardBody extends StatelessWidget {
         const SizedBox(height: 12),
 
         // --- Konten -------------------------------------------------------
+        SectionCard(
+          title: 'Sedang dibaca / ditonton',
+          icon: Icons.collections_bookmark_outlined,
+          trailing: TextButton(onPressed: () => context.go('/koleksi'), child: const Text('Lihat')),
+          child: s.inProgress.isEmpty
+              ? const EmptyHint('Belum ada. Ubah status item koleksi menjadi "Sedang".')
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Column(children: [for (final w in s.inProgress) WatchlistItemCard(item: w, compact: true)]),
+                ),
+        ),
+        const SizedBox(height: 12),
+        SectionCard(
+          title: 'Catatan terbaru',
+          icon: Icons.sticky_note_2_outlined,
+          trailing: IconButton(
+            tooltip: 'Catatan baru',
+            icon: const Icon(Icons.add),
+            onPressed: () => context.push('/catatan/baru'),
+          ),
+          child: s.recentNotes.isEmpty
+              ? const EmptyHint('Belum ada catatan.')
+              : Column(children: [
+                  for (final n in s.recentNotes)
+                    ListTile(
+                      dense: true,
+                      leading: Icon(n.isPinned ? Icons.push_pin : Icons.notes, size: 20),
+                      title: Text(n.title.trim().isEmpty ? '(tanpa judul)' : n.title,
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      subtitle: Text(MarkdownText.preview(n.body, maxChars: 80),
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      onTap: () => context.push('/catatan/${n.id}'),
+                    ),
+                ]),
+        ),
+        const SizedBox(height: 12),
         SectionCard(
           title: 'Jadwal konten 7 hari ke depan',
           icon: Icons.event_note,
