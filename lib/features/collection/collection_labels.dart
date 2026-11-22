@@ -19,20 +19,20 @@ const watchlistStatusLabels = {
 };
 
 Color watchlistStatusColor(String s) => switch (s) {
-      'sedang' => Colors.blue.shade700,
-      'selesai' => Colors.green.shade700,
-      'ditunda' => Colors.orange.shade800,
-      'drop' => Colors.grey.shade600,
-      _ => Colors.purple,
-    };
+  'sedang' => Colors.blue.shade700,
+  'selesai' => Colors.green.shade700,
+  'ditunda' => Colors.orange.shade800,
+  'drop' => Colors.grey.shade600,
+  _ => Colors.purple,
+};
 
 /// Satuan progress sesuai jenis (halaman/episode/menit).
 String progressUnit(String type) => switch (type) {
-      'buku' => 'hal.',
-      'serial' || 'podcast' => 'eps.',
-      'video' || 'film' => 'menit',
-      _ => 'bagian',
-    };
+  'buku' => 'hal.',
+  'serial' || 'podcast' => 'eps.',
+  'video' || 'film' => 'menit',
+  _ => 'bagian',
+};
 
 class WatchlistStatusChip extends StatelessWidget {
   const WatchlistStatusChip(this.status, {super.key});
@@ -44,8 +44,10 @@ class WatchlistStatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: c.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(8)),
-      child: Text(watchlistStatusLabels[status] ?? status,
-          style: TextStyle(color: c, fontSize: 12, fontWeight: FontWeight.w600)),
+      child: Text(
+        watchlistStatusLabels[status] ?? status,
+        style: TextStyle(color: c, fontSize: 12, fontWeight: FontWeight.w600),
+      ),
     );
   }
 }
@@ -60,18 +62,21 @@ class StarRating extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = Colors.amber.shade700;
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      for (var i = 1; i <= 5; i++)
-        onChanged == null
-            ? Icon((value ?? 0) >= i ? Icons.star : Icons.star_border, size: size, color: color)
-            : IconButton(
-                tooltip: '$i bintang',
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints.tightFor(width: size + 8, height: size + 8),
-                icon: Icon((value ?? 0) >= i ? Icons.star : Icons.star_border, size: size, color: color),
-                onPressed: () => onChanged!(value == i ? null : i),
-              ),
-    ]);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 1; i <= 5; i++)
+          onChanged == null
+              ? Icon((value ?? 0) >= i ? Icons.star : Icons.star_border, size: size, color: color)
+              : IconButton(
+                  tooltip: '$i bintang',
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints.tightFor(width: size + 8, height: size + 8),
+                  icon: Icon((value ?? 0) >= i ? Icons.star : Icons.star_border, size: size, color: color),
+                  onPressed: () => onChanged!(value == i ? null : i),
+                ),
+      ],
+    );
   }
 }

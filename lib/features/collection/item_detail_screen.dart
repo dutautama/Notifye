@@ -29,7 +29,10 @@ class ItemDetailScreen extends ConsumerWidget {
         }
         final i = snap.data;
         if (i == null || i.deletedAt != null) {
-          return Scaffold(appBar: AppBar(), body: const Center(child: Text('Item tidak ditemukan.')));
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('Item tidak ditemukan.')),
+          );
         }
         final (typeLabel, icon) = watchlistTypeLabels[i.type] ?? ('Lainnya', Icons.bookmark_outline);
         final hasTotal = i.progressTotal != null && i.progressTotal! > 0;
@@ -48,17 +51,23 @@ class ItemDetailScreen extends ConsumerWidget {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                AttachmentImage(i.coverPath, size: 88, fallback: icon),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    SelectableText(i.title, style: Theme.of(context).textTheme.titleLarge),
-                    if (i.creator != null) Text(i.creator!),
-                    if (i.platform != null) Text(i.platform!, style: Theme.of(context).textTheme.bodySmall),
-                  ]),
-                ),
-              ]),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AttachmentImage(i.coverPath, size: 88, fallback: icon),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SelectableText(i.title, style: Theme.of(context).textTheme.titleLarge),
+                        if (i.creator != null) Text(i.creator!),
+                        if (i.platform != null) Text(i.platform!, style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
               if (i.url != null)
                 FilledButton.tonalIcon(
@@ -73,44 +82,66 @@ class ItemDetailScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               const Text('Status'),
               const SizedBox(height: 8),
-              Wrap(spacing: 8, runSpacing: 4, children: [
-                for (final e in watchlistStatusLabels.entries)
-                  ChoiceChip(
-                    label: Text(e.value),
-                    selected: i.status == e.key,
-                    onSelected: (_) => repo.setStatus(i.id, e.key),
-                  ),
-              ]),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  for (final e in watchlistStatusLabels.entries)
+                    ChoiceChip(
+                      label: Text(e.value),
+                      selected: i.status == e.key,
+                      onSelected: (_) => repo.setStatus(i.id, e.key),
+                    ),
+                ],
+              ),
               const SizedBox(height: 16),
-              Row(children: [
-                const Text('Rating'),
-                const SizedBox(width: 8),
-                StarRating(value: i.rating, onChanged: (r) => repo.setRating(i.id, r)),
-              ]),
+              Row(
+                children: [
+                  const Text('Rating'),
+                  const SizedBox(width: 8),
+                  StarRating(value: i.rating, onChanged: (r) => repo.setRating(i.id, r)),
+                ],
+              ),
               if (hasTotal || i.progress != null) ...[
                 const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('Progress: ${i.progress ?? 0}${hasTotal ? ' / ${i.progressTotal}' : ''} $unit'),
-                      if (hasTotal) ...[
-                        const SizedBox(height: 6),
-                        LinearProgressIndicator(
-                          value: ((i.progress ?? 0) / i.progressTotal!).clamp(0, 1).toDouble(),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ],
-                    ]),
-                  ),
-                  IconButton(tooltip: 'Kurangi', icon: const Icon(Icons.remove_circle_outline), onPressed: () => repo.addProgress(i.id, -1)),
-                  IconButton(tooltip: 'Tambah', icon: const Icon(Icons.add_circle_outline), onPressed: () => repo.addProgress(i.id, 1)),
-                ]),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Progress: ${i.progress ?? 0}${hasTotal ? ' / ${i.progressTotal}' : ''} $unit'),
+                          if (hasTotal) ...[
+                            const SizedBox(height: 6),
+                            LinearProgressIndicator(
+                              value: ((i.progress ?? 0) / i.progressTotal!).clamp(0, 1).toDouble(),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Kurangi',
+                      icon: const Icon(Icons.remove_circle_outline),
+                      onPressed: () => repo.addProgress(i.id, -1),
+                    ),
+                    IconButton(
+                      tooltip: 'Tambah',
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: () => repo.addProgress(i.id, 1),
+                    ),
+                  ],
+                ),
               ],
               const SizedBox(height: 8),
-              Text([
-                if (i.startedAt != null) 'Mulai ${Fmt.date(i.startedAt)}',
-                if (i.finishedAt != null) 'Selesai ${Fmt.date(i.finishedAt)}',
-              ].join(' • '), style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                [
+                  if (i.startedAt != null) 'Mulai ${Fmt.date(i.startedAt)}',
+                  if (i.finishedAt != null) 'Selesai ${Fmt.date(i.finishedAt)}',
+                ].join(' • '),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
               if (i.review != null) ...[
                 const SizedBox(height: 12),
                 Card(
@@ -155,20 +186,22 @@ class _LinkedIdeas extends ConsumerWidget {
           ),
           child: list.isEmpty
               ? const EmptyHint('Mis. ide "video review buku ini". Ketuk ikon tautan untuk memilih.')
-              : Column(children: [
-                  for (final idea in list)
-                    ListTile(
-                      dense: true,
-                      title: Text(idea.title),
-                      subtitle: Text('Status: ${idea.status}'),
-                      onTap: () => context.push('/konten/ide/${idea.id}'),
-                      trailing: IconButton(
-                        tooltip: 'Lepas tautan',
-                        icon: const Icon(Icons.link_off),
-                        onPressed: () => repo.unlinkIdea(itemId, idea.id),
+              : Column(
+                  children: [
+                    for (final idea in list)
+                      ListTile(
+                        dense: true,
+                        title: Text(idea.title),
+                        subtitle: Text('Status: ${idea.status}'),
+                        onTap: () => context.push('/konten/ide/${idea.id}'),
+                        trailing: IconButton(
+                          tooltip: 'Lepas tautan',
+                          icon: const Icon(Icons.link_off),
+                          onPressed: () => repo.unlinkIdea(itemId, idea.id),
+                        ),
                       ),
-                    ),
-                ]),
+                  ],
+                ),
         );
       },
     );

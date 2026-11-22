@@ -8,7 +8,9 @@ import '../../../core/validators.dart';
 import '../../../data/database/app_database.dart';
 import '../../../providers/app_providers.dart';
 import '../../../services/whatsapp_service.dart';
+import '../../../data/repositories/catatan_repository.dart';
 import '../../../widgets/form_fields.dart';
+import '../../../widgets/related_notes_section.dart';
 import 'party_list_screen.dart';
 
 class PartyFormScreen extends ConsumerStatefulWidget {
@@ -170,6 +172,11 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
               decoration: const InputDecoration(labelText: 'Catatan'),
             ),
             if (_isEdit) ...[
+              const SizedBox(height: 16),
+              RelatedNotesSection(
+                entityType: _isCustomer ? LinkType.customer : LinkType.supplier,
+                entityId: widget.partyId!,
+              ),
               const SizedBox(height: 16),
               Wrap(
                 spacing: 8,

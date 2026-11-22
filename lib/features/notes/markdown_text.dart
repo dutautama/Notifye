@@ -13,7 +13,10 @@ class MarkdownText {
     final selected = sel.textInside(v.text);
     final text = v.text.replaceRange(sel.start, sel.end, '$marker$selected$marker');
     final offset = selected.isEmpty ? sel.start + marker.length : sel.start + marker.length * 2 + selected.length;
-    return TextEditingValue(text: text, selection: TextSelection.collapsed(offset: offset));
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: offset),
+    );
   }
 
   /// Tambah/hapus awalan [prefix] pada semua baris yang tersentuh seleksi (toggle).
@@ -30,15 +33,17 @@ class MarkdownText {
         allHave ? l.substring(prefix.length) : (_hasPrefix(l, prefix) ? l : '$prefix${_stripListPrefix(l)}'),
     ].join('\n');
     final newText = text.replaceRange(lineStart, lineEnd, changed);
-    return TextEditingValue(text: newText, selection: TextSelection.collapsed(offset: lineStart + changed.length));
+    return TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: lineStart + changed.length),
+    );
   }
 
   /// Baris checklist ("- [ ] ") bukan bullet biasa walau sama-sama diawali "- ".
   static bool _hasPrefix(String line, String prefix) =>
       line.startsWith(prefix) && (prefix != '- ' || !checkboxRe.hasMatch(line));
 
-  static String _stripListPrefix(String l) =>
-      l.replaceFirst(RegExp(r'^(#{1,3} |[-*] \[( |x|X)\] |[-*] |\d+\. )'), '');
+  static String _stripListPrefix(String l) => l.replaceFirst(RegExp(r'^(#{1,3} |[-*] \[( |x|X)\] |[-*] |\d+\. )'), '');
 
   /// Centang/batal centang checkbox pada baris ke-[lineIndex].
   static String toggleCheckbox(String body, int lineIndex) {
@@ -55,12 +60,14 @@ class MarkdownText {
   static String toShareText(String title, String body) {
     final b = body
         .split('\n')
-        .map((l) => l
-            .replaceFirstMapped(checkboxRe, (m) => '${m.group(1)}${m.group(2)!.toLowerCase() == 'x' ? '☑' : '☐'} ')
-            .replaceFirst(RegExp(r'^#{1,3} '), '')
-            .replaceFirstMapped(RegExp(r'^(\s*)[-*] '), (m) => '${m.group(1)}• ')
-            .replaceAll('**', '')
-            .replaceAllMapped(RegExp(r'(^|\s)_(\S[^_]*?)_(?=\s|$|[.,!?])'), (m) => '${m.group(1)}${m.group(2)}'))
+        .map(
+          (l) => l
+              .replaceFirstMapped(checkboxRe, (m) => '${m.group(1)}${m.group(2)!.toLowerCase() == 'x' ? '☑' : '☐'} ')
+              .replaceFirst(RegExp(r'^#{1,3} '), '')
+              .replaceFirstMapped(RegExp(r'^(\s*)[-*] '), (m) => '${m.group(1)}• ')
+              .replaceAll('**', '')
+              .replaceAllMapped(RegExp(r'(^|\s)_(\S[^_]*?)_(?=\s|$|[.,!?])'), (m) => '${m.group(1)}${m.group(2)}'),
+        )
         .join('\n')
         .trim();
     final t = title.trim();

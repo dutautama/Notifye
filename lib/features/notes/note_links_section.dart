@@ -45,21 +45,23 @@ class NoteLinksSection extends ConsumerWidget {
               ? const EmptyHint('Tempelkan catatan ini ke produk, pelanggan, transaksi, ide konten, atau koleksi.')
               : FutureBuilder<List<LinkedEntity>>(
                   future: repo.resolveLinks(links),
-                  builder: (context, res) => Column(children: [
-                    for (final e in res.data ?? const <LinkedEntity>[])
-                      ListTile(
-                        dense: true,
-                        leading: Icon(linkTargets[e.type]?.icon ?? Icons.link),
-                        title: Text(e.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        subtitle: Text(linkTargets[e.type]?.label ?? e.type),
-                        onTap: e.missing ? null : () => context.push(linkTargets[e.type]!.route(e.id)),
-                        trailing: IconButton(
-                          tooltip: 'Lepas tautan',
-                          icon: const Icon(Icons.link_off),
-                          onPressed: () => repo.unlink(noteId, e.type, e.id),
+                  builder: (context, res) => Column(
+                    children: [
+                      for (final e in res.data ?? const <LinkedEntity>[])
+                        ListTile(
+                          dense: true,
+                          leading: Icon(linkTargets[e.type]?.icon ?? Icons.link),
+                          title: Text(e.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                          subtitle: Text(linkTargets[e.type]?.label ?? e.type),
+                          onTap: e.missing ? null : () => context.push(linkTargets[e.type]!.route(e.id)),
+                          trailing: IconButton(
+                            tooltip: 'Lepas tautan',
+                            icon: const Icon(Icons.link_off),
+                            onPressed: () => repo.unlink(noteId, e.type, e.id),
+                          ),
                         ),
-                      ),
-                  ]),
+                    ],
+                  ),
                 ),
         );
       },

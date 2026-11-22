@@ -11,7 +11,10 @@ import '../../providers/app_providers.dart';
 import '../../services/attachment_service.dart';
 import '../../services/share_service.dart';
 import '../../widgets/attachment_image.dart';
+import '../../data/repositories/catatan_repository.dart';
 import '../../widgets/form_fields.dart';
+import '../../widgets/related_notes_section.dart';
+import '../notes/link_targets.dart';
 import '../../widgets/section_card.dart';
 import 'content_labels.dart';
 
@@ -88,6 +91,10 @@ class IdeaDetailScreen extends ConsumerWidget {
               _Schedules(idea: idea),
               const SizedBox(height: 12),
               _Publications(idea: idea),
+              const SizedBox(height: 12),
+              _LinkedWatchlist(ideaId: idea.id),
+              const SizedBox(height: 12),
+              RelatedNotesSection(entityType: LinkType.contentIdea, entityId: idea.id),
               const SizedBox(height: 32),
             ],
           ),
@@ -689,6 +696,53 @@ class _Publications extends ConsumerWidget {
                             if (p.postUrl != null) const PopupMenuItem(value: 'buka', child: Text('Buka postingan')),
                             const PopupMenuItem(value: 'hapus', child: Text('Hapus')),
                           ],
+                        ),
+                      ),
+                  ],
+                ),
+        );
+      },
+    );
+  }
+}
+
+/// Sisi balik relasi koleksi ↔ ide konten: buku/video yang menjadi bahan ide ini.
+class _LinkedWatchlist extends ConsumerWidget {
+  const _LinkedWatchlist({required this.ideaId});
+  final String ideaId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final repo = ref.watch(koleksiRepositoryProvider);
+    return StreamBuilder<List<WatchlistItem>>(
+      stream: repo.watchItemsForIdea(ideaId),
+      builder: (context, snap) {
+        final list = snap.data ?? const <WatchlistItem>[];
+        return SectionCard(
+          title: 'Koleksi terkait',
+          icon: Icons.collections_bookmark_outlined,
+          trailing: IconButton(
+            tooltip: 'Tautkan item koleksi',
+            icon: const Icon(Icons.add_link),
+            onPressed: () async {
+              final t = await pickLinkTarget(context, types: const [LinkType.watchlistItem]);
+              if (t != null) await repo.linkIdea(t.$2, ideaId);
+            },
+          ),
+          child: list.isEmpty
+              ? const EmptyHint('Buku/video/artikel yang menjadi bahan ide ini.')
+              : Column(
+                  children: [
+                    for (final w in list)
+                      ListTile(
+                        dense: true,
+                        title: Text(w.title),
+                        subtitle: Text([w.type, if (w.creator != null) w.creator!].join(' • ')),
+                        onTap: () => context.push('/koleksi/${w.id}'),
+                        trailing: IconButton(
+                          tooltip: 'Lepas tautan',
+                          icon: const Icon(Icons.link_off),
+                          onPressed: () => repo.unlinkIdea(w.id, ideaId),
                         ),
                       ),
                   ],

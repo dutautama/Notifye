@@ -12,7 +12,9 @@ import '../../../services/attachment_service.dart';
 import '../../../widgets/attachment_image.dart';
 import '../../../widgets/barcode_scanner_page.dart';
 import '../../../widgets/form_fields.dart';
+import '../../../widgets/related_notes_section.dart';
 import '../../../widgets/section_card.dart';
+import '../../../data/repositories/catatan_repository.dart';
 import 'product_list_screen.dart';
 
 class ProductFormScreen extends ConsumerStatefulWidget {
@@ -374,6 +376,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               _LinkedContent(productId: widget.productId!),
               const SizedBox(height: 12),
               _StockHistory(productId: widget.productId!),
+              const SizedBox(height: 12),
+              RelatedNotesSection(entityType: LinkType.product, entityId: widget.productId!),
             ],
             const SizedBox(height: 24),
             FilledButton(

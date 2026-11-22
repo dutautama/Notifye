@@ -31,25 +31,36 @@ class MarkdownView extends StatelessWidget {
       if (cb != null) {
         final checked = cb.group(2)!.toLowerCase() == 'x';
         final content = line.substring(cb.end);
-        children.add(InkWell(
-          onTap: onToggleCheckbox == null ? null : () => onToggleCheckbox!(i),
-          child: Padding(
-            padding: EdgeInsets.only(left: cb.group(1)!.length * 8.0, top: 2, bottom: 2),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Icon(checked ? Icons.check_box : Icons.check_box_outline_blank,
-                  size: 22, color: checked ? theme.colorScheme.primary : null),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text.rich(
-                  _inline(content, base.copyWith(
-                    decoration: checked ? TextDecoration.lineThrough : null,
-                    color: checked ? theme.colorScheme.onSurfaceVariant : null,
-                  )),
-                ),
+        children.add(
+          InkWell(
+            onTap: onToggleCheckbox == null ? null : () => onToggleCheckbox!(i),
+            child: Padding(
+              padding: EdgeInsets.only(left: cb.group(1)!.length * 8.0, top: 2, bottom: 2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    checked ? Icons.check_box : Icons.check_box_outline_blank,
+                    size: 22,
+                    color: checked ? theme.colorScheme.primary : null,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text.rich(
+                      _inline(
+                        content,
+                        base.copyWith(
+                          decoration: checked ? TextDecoration.lineThrough : null,
+                          color: checked ? theme.colorScheme.onSurfaceVariant : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ]),
+            ),
           ),
-        ));
+        );
         continue;
       }
       final h = _heading.firstMatch(line);
@@ -59,10 +70,12 @@ class MarkdownView extends StatelessWidget {
           2 => theme.textTheme.titleLarge,
           _ => theme.textTheme.titleMedium,
         };
-        children.add(Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 4),
-          child: Text.rich(_inline(h.group(2)!, (style ?? base).copyWith(fontWeight: FontWeight.bold))),
-        ));
+        children.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 4),
+            child: Text.rich(_inline(h.group(2)!, (style ?? base).copyWith(fontWeight: FontWeight.bold))),
+          ),
+        );
         continue;
       }
       final n = _numbered.firstMatch(line);
@@ -71,19 +84,21 @@ class MarkdownView extends StatelessWidget {
         final indent = (n?.group(1) ?? b!.group(1)!).length * 8.0;
         final marker = n != null ? '${n.group(2)}.' : '•';
         final content = n?.group(3) ?? b!.group(2)!;
-        children.add(Padding(
-          padding: EdgeInsets.only(left: indent, top: 2, bottom: 2),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            SizedBox(width: 22, child: Text(marker, style: base)),
-            Expanded(child: Text.rich(_inline(content, base))),
-          ]),
-        ));
+        children.add(
+          Padding(
+            padding: EdgeInsets.only(left: indent, top: 2, bottom: 2),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: 22, child: Text(marker, style: base)),
+                Expanded(child: Text.rich(_inline(content, base))),
+              ],
+            ),
+          ),
+        );
         continue;
       }
-      children.add(Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Text.rich(_inline(line, base)),
-      ));
+      children.add(Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Text.rich(_inline(line, base))));
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
   }
@@ -96,9 +111,19 @@ class MarkdownView extends StatelessWidget {
     for (final m in _inlineRe.allMatches(s)) {
       if (m.start > last) spans.add(TextSpan(text: s.substring(last, m.start)));
       if (m.group(1) != null) {
-        spans.add(TextSpan(text: m.group(1), style: const TextStyle(fontWeight: FontWeight.bold)));
+        spans.add(
+          TextSpan(
+            text: m.group(1),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        );
       } else {
-        spans.add(TextSpan(text: m.group(2), style: const TextStyle(fontStyle: FontStyle.italic)));
+        spans.add(
+          TextSpan(
+            text: m.group(2),
+            style: const TextStyle(fontStyle: FontStyle.italic),
+          ),
+        );
       }
       last = m.end;
     }

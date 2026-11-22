@@ -40,22 +40,27 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
           icon: const Icon(Icons.add),
           label: const Text('Tambah'),
         ),
-        body: Column(children: [
-          _StatsBar(selected: _status, onSelect: (s) => setState(() => _status = s)),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: TextField(
-              onChanged: (v) => setState(() => _search = v),
-              decoration: const InputDecoration(
-                  hintText: 'Cari judul, penulis, platform', prefixIcon: Icon(Icons.search), isDense: true),
+        body: Column(
+          children: [
+            _StatsBar(selected: _status, onSelect: (s) => setState(() => _status = s)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: TextField(
+                onChanged: (v) => setState(() => _search = v),
+                decoration: const InputDecoration(
+                  hintText: 'Cari judul, penulis, platform',
+                  prefixIcon: Icon(Icons.search),
+                  isDense: true,
+                ),
+              ),
             ),
-          ),
-          Expanded(
-            child: TabBarView(children: [
-              for (final t in _tabs) _ItemList(type: t, status: _status, search: _search),
-            ]),
-          ),
-        ]),
+            Expanded(
+              child: TabBarView(
+                children: [for (final t in _tabs) _ItemList(type: t, status: _status, search: _search)],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -72,37 +77,42 @@ class _StatsBar extends ConsumerWidget {
       stream: ref.watch(koleksiRepositoryProvider).watchStats(),
       builder: (context, snap) {
         final s = snap.data;
-        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          SizedBox(
-            height: 52,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              children: [
-                for (final st in [null, ...watchlistStatuses])
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(st == null
-                          ? 'Semua${s == null ? '' : ' (${s.total})'}'
-                          : '${watchlistStatusLabels[st]}${s == null ? '' : ' (${s.byStatus[st] ?? 0})'}'),
-                      selected: selected == st,
-                      onSelected: (_) => onSelect(st),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 52,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                children: [
+                  for (final st in [null, ...watchlistStatuses])
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(
+                          st == null
+                              ? 'Semua${s == null ? '' : ' (${s.total})'}'
+                              : '${watchlistStatusLabels[st]}${s == null ? '' : ' (${s.byStatus[st] ?? 0})'}',
+                        ),
+                        selected: selected == st,
+                        onSelected: (_) => onSelect(st),
+                      ),
                     ),
-                  ),
-              ],
-            ),
-          ),
-          if (s != null && s.total > 0)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Text(
-                'Selesai bulan ini: ${s.finishedThisMonth}'
-                '${s.averageRating == null ? '' : ' • Rata-rata rating ${s.averageRating!.toStringAsFixed(1)} ★ (${s.ratedCount})'}',
-                style: Theme.of(context).textTheme.bodySmall,
+                ],
               ),
             ),
-        ]);
+            if (s != null && s.total > 0)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Text(
+                  'Selesai bulan ini: ${s.finishedThisMonth}'
+                  '${s.averageRating == null ? '' : ' • Rata-rata rating ${s.averageRating!.toStringAsFixed(1)} ★ (${s.ratedCount})'}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+          ],
+        );
       },
     );
   }
@@ -160,37 +170,60 @@ class WatchlistItemCard extends ConsumerWidget {
         onTap: () => context.push('/koleksi/${i.id}'),
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            AttachmentImage(i.coverPath, size: compact ? 44 : 56, fallback: icon),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(i.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text([label, if (i.creator != null) i.creator!, if (i.platform != null) i.platform!].join(' • '),
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: 6),
-                Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                  WatchlistStatusChip(i.status),
-                  if (i.rating != null) StarRating(value: i.rating, size: 14),
-                  if (hasProgress) Text('${i.progress ?? 0}/${i.progressTotal} ${progressUnit(i.type)}',
-                      style: Theme.of(context).textTheme.bodySmall),
-                ]),
-                if (hasProgress) ...[
-                  const SizedBox(height: 6),
-                  LinearProgressIndicator(
-                    value: ((i.progress ?? 0) / i.progressTotal!).clamp(0, 1).toDouble(),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ],
-              ]),
-            ),
-            if (hasProgress && i.status != 'selesai')
-              IconButton(
-                tooltip: 'Tambah 1 ${progressUnit(i.type)}',
-                icon: const Icon(Icons.exposure_plus_1),
-                onPressed: () => ref.read(koleksiRepositoryProvider).addProgress(i.id, 1),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AttachmentImage(i.coverPath, size: compact ? 44 : 56, fallback: icon),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      i.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      [label, if (i.creator != null) i.creator!, if (i.platform != null) i.platform!].join(' • '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        WatchlistStatusChip(i.status),
+                        if (i.rating != null) StarRating(value: i.rating, size: 14),
+                        if (hasProgress)
+                          Text(
+                            '${i.progress ?? 0}/${i.progressTotal} ${progressUnit(i.type)}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                      ],
+                    ),
+                    if (hasProgress) ...[
+                      const SizedBox(height: 6),
+                      LinearProgressIndicator(
+                        value: ((i.progress ?? 0) / i.progressTotal!).clamp(0, 1).toDouble(),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-          ]),
+              if (hasProgress && i.status != 'selesai')
+                IconButton(
+                  tooltip: 'Tambah 1 ${progressUnit(i.type)}',
+                  icon: const Icon(Icons.exposure_plus_1),
+                  onPressed: () => ref.read(koleksiRepositoryProvider).addProgress(i.id, 1),
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -23,7 +23,9 @@ SharedItemDraft? parseSharedText(String raw) {
   final host = url == null ? '' : (Uri.tryParse(url)?.host.toLowerCase() ?? '');
   final (type, platform) = _guess(host, url ?? '');
   if (title.isEmpty) {
-    title = platform != null ? '$platform — ${_shortPath(url!)}' : (host.isEmpty ? 'Item baru' : host.replaceFirst('www.', ''));
+    title = platform != null
+        ? '$platform — ${_shortPath(url!)}'
+        : (host.isEmpty ? 'Item baru' : host.replaceFirst('www.', ''));
   }
   if (title.length > 300) title = title.substring(0, 300);
   return SharedItemDraft(title: title, url: url, type: type, platform: platform);
@@ -45,7 +47,9 @@ SharedItemDraft? parseSharedText(String raw) {
   }
   if (h('podcasts.apple.com') || h('podcasts.google.com') || h('castbox.fm')) return ('podcast', 'Podcast');
   if (h('goodreads.com') || h('books.google.com') || h('gramedia.com') || h('gramedia.digital')) return ('buku', null);
-  if (h('medium.com') || h('substack.com') || h('kompas.com') || h('detik.com') || h('tempo.co')) return ('artikel', null);
+  if (h('medium.com') || h('substack.com') || h('kompas.com') || h('detik.com') || h('tempo.co')) {
+    return ('artikel', null);
+  }
   return (host.isEmpty ? 'lainnya' : 'artikel', null);
 }
 

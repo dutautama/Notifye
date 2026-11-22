@@ -10,7 +10,9 @@ import '../../../services/documents/invoice_pdf.dart';
 import '../../../services/printer_service.dart';
 import '../../../services/share_service.dart';
 import '../../../services/whatsapp_service.dart';
+import '../../../data/repositories/catatan_repository.dart';
 import '../../../widgets/form_fields.dart';
+import '../../../widgets/related_notes_section.dart';
 import '../../../widgets/section_card.dart';
 import 'trx_labels.dart';
 
@@ -317,6 +319,8 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
                         ],
                       ),
               ),
+              const SizedBox(height: 12),
+              RelatedNotesSection(entityType: LinkType.transaction, entityId: t.id),
             ],
           ),
         );

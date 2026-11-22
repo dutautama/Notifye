@@ -88,7 +88,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           await repo.updateNote(id, title: title, body: body, category: Value(category));
         } else if (title.trim().isNotEmpty || body.trim().isNotEmpty) {
           final newId = await repo.createNote(
-              title: title, body: body, category: category, linkType: linkType, linkId: linkId);
+            title: title,
+            body: body,
+            category: category,
+            linkType: linkType,
+            linkId: linkId,
+          );
           if (tags.isNotEmpty) await repo.setTags(newId, tags);
         }
       }());
@@ -122,7 +127,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     final op = () async {
       if (_id == null) {
         _id = await _repo.createNote(
-            title: title, body: body, category: category, linkType: widget.linkType, linkId: widget.linkId);
+          title: title,
+          body: body,
+          category: category,
+          linkType: widget.linkType,
+          linkId: widget.linkId,
+        );
         if (_tags.isNotEmpty) await _repo.setTags(_id!, _tags);
       } else {
         await _repo.updateNote(_id!, title: title, body: body, category: Value(category));
@@ -179,7 +189,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       if (mounted) showSnack(context, 'Catatan masih kosong.');
       return;
     }
-    await SharePlus.instance.share(ShareParams(text: text, subject: _title.text.trim().isEmpty ? null : _title.text.trim()));
+    await SharePlus.instance.share(
+      ShareParams(text: text, subject: _title.text.trim().isEmpty ? null : _title.text.trim()),
+    );
   }
 
   Future<void> _addAttachment() async {
@@ -190,13 +202,15 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       if (r == null) return;
       final f = await AttachmentService.fileFor(r.$1);
       final ext = r.$2.split('.').last.toLowerCase();
-      await _repo.addAttachment(id,
-          filePath: r.$1,
-          fileName: r.$2,
-          mime: const {'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic'}.contains(ext)
-              ? 'image/$ext'
-              : (ext == 'pdf' ? 'application/pdf' : null),
-          sizeBytes: await f.length());
+      await _repo.addAttachment(
+        id,
+        filePath: r.$1,
+        fileName: r.$2,
+        mime: const {'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic'}.contains(ext)
+            ? 'image/$ext'
+            : (ext == 'pdf' ? 'application/pdf' : null),
+        sizeBytes: await f.length(),
+      );
     } catch (e) {
       if (mounted) showSnack(context, e.toString().replaceFirst('Bad state: ', ''));
     }
@@ -215,8 +229,13 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         return;
       case 'hapus':
         if (!mounted) return;
-        final ok = await confirmDialog(context,
-            title: 'Hapus catatan?', message: 'Catatan dan lampirannya disembunyikan.', ok: 'Hapus', danger: true);
+        final ok = await confirmDialog(
+          context,
+          title: 'Hapus catatan?',
+          message: 'Catatan dan lampirannya disembunyikan.',
+          ok: 'Hapus',
+          danger: true,
+        );
         if (!ok) return;
         await _repo.softDelete(id);
         if (mounted) context.pop();
@@ -256,8 +275,14 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                 tooltip: 'Pilihan',
                 onSelected: _menu,
                 itemBuilder: (_) => [
-                  PopupMenuItem(value: 'pin', child: Text(_note?.isPinned ?? false ? 'Lepas sematan' : 'Sematkan di atas')),
-                  PopupMenuItem(value: 'arsip', child: Text(_note?.isArchived ?? false ? 'Keluarkan dari arsip' : 'Arsipkan')),
+                  PopupMenuItem(
+                    value: 'pin',
+                    child: Text(_note?.isPinned ?? false ? 'Lepas sematan' : 'Sematkan di atas'),
+                  ),
+                  PopupMenuItem(
+                    value: 'arsip',
+                    child: Text(_note?.isArchived ?? false ? 'Keluarkan dari arsip' : 'Arsipkan'),
+                  ),
                   const PopupMenuItem(value: 'hapus', child: Text('Hapus')),
                 ],
               ),
@@ -271,11 +296,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
               onChanged: (_) => _changed(),
               textCapitalization: TextCapitalization.sentences,
               style: Theme.of(context).textTheme.headlineSmall,
-              decoration: const InputDecoration(
-                hintText: 'Judul',
-                border: InputBorder.none,
-                filled: false,
-              ),
+              decoration: const InputDecoration(hintText: 'Judul', border: InputBorder.none, filled: false),
             ),
             if (_reading)
               _body.text.trim().isEmpty
@@ -309,18 +330,23 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-              for (final t in _tags) InputChip(label: Text('#$t'), onDeleted: () => _removeTag(t)),
-              SizedBox(
-                width: 180,
-                child: TextField(
-                  controller: _tagInput,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: _addTag,
-                  decoration: const InputDecoration(hintText: 'Tambah tag ↵', isDense: true, prefixText: '#'),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                for (final t in _tags) InputChip(label: Text('#$t'), onDeleted: () => _removeTag(t)),
+                SizedBox(
+                  width: 180,
+                  child: TextField(
+                    controller: _tagInput,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: _addTag,
+                    decoration: const InputDecoration(hintText: 'Tambah tag ↵', isDense: true, prefixText: '#'),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const SizedBox(height: 16),
             if (_id != null) ...[
               _Attachments(noteId: _id!, onAdd: _addAttachment),
@@ -349,14 +375,16 @@ class _Toolbar extends StatelessWidget {
         IconButton(tooltip: tip, icon: Icon(icon), onPressed: () => onAction(fn));
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(children: [
-        btn(Icons.format_bold, 'Tebal', (v) => MarkdownText.wrap(v, '**')),
-        btn(Icons.format_italic, 'Miring', (v) => MarkdownText.wrap(v, '_')),
-        btn(Icons.title, 'Judul', (v) => MarkdownText.togglePrefix(v, '## ')),
-        btn(Icons.format_list_bulleted, 'Daftar', (v) => MarkdownText.togglePrefix(v, '- ')),
-        btn(Icons.format_list_numbered, 'Daftar bernomor', (v) => MarkdownText.togglePrefix(v, '1. ')),
-        btn(Icons.check_box_outlined, 'Checklist', (v) => MarkdownText.togglePrefix(v, '- [ ] ')),
-      ]),
+      child: Row(
+        children: [
+          btn(Icons.format_bold, 'Tebal', (v) => MarkdownText.wrap(v, '**')),
+          btn(Icons.format_italic, 'Miring', (v) => MarkdownText.wrap(v, '_')),
+          btn(Icons.title, 'Judul', (v) => MarkdownText.togglePrefix(v, '## ')),
+          btn(Icons.format_list_bulleted, 'Daftar', (v) => MarkdownText.togglePrefix(v, '- ')),
+          btn(Icons.format_list_numbered, 'Daftar bernomor', (v) => MarkdownText.togglePrefix(v, '1. ')),
+          btn(Icons.check_box_outlined, 'Checklist', (v) => MarkdownText.togglePrefix(v, '- [ ] ')),
+        ],
+      ),
     );
   }
 }
@@ -379,35 +407,50 @@ class _Attachments extends ConsumerWidget {
           trailing: IconButton(tooltip: 'Tambah lampiran', icon: const Icon(Icons.add), onPressed: onAdd),
           child: list.isEmpty
               ? const EmptyHint('Belum ada lampiran (gambar, PDF, dokumen).')
-              : Column(children: [
-                  for (final a in list)
-                    ListTile(
-                      dense: true,
-                      leading: (a.mime ?? '').startsWith('image/')
-                          ? AttachmentImage(a.filePath, size: 40)
-                          : Icon(a.mime == 'application/pdf' ? Icons.picture_as_pdf_outlined : Icons.insert_drive_file_outlined),
-                      title: Text(a.fileName, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      subtitle: a.sizeBytes == null ? null : Text('${(a.sizeBytes! / 1024).toStringAsFixed(0)} KB'),
-                      onTap: () async {
-                        final f = await AttachmentService.fileFor(a.filePath);
-                        if (await f.exists()) {
-                          await ShareService.shareFile(f, mime: a.mime ?? 'application/octet-stream', subject: a.fileName);
-                        } else if (context.mounted) {
-                          showSnack(context, 'File lampiran tidak ditemukan');
-                        }
-                      },
-                      trailing: IconButton(
-                        tooltip: 'Hapus lampiran',
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () async {
-                          if (await confirmDialog(context,
-                              title: 'Hapus lampiran?', message: a.fileName, ok: 'Hapus', danger: true)) {
-                            await repo.deleteAttachment(a.id);
+              : Column(
+                  children: [
+                    for (final a in list)
+                      ListTile(
+                        dense: true,
+                        leading: (a.mime ?? '').startsWith('image/')
+                            ? AttachmentImage(a.filePath, size: 40)
+                            : Icon(
+                                a.mime == 'application/pdf'
+                                    ? Icons.picture_as_pdf_outlined
+                                    : Icons.insert_drive_file_outlined,
+                              ),
+                        title: Text(a.fileName, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: a.sizeBytes == null ? null : Text('${(a.sizeBytes! / 1024).toStringAsFixed(0)} KB'),
+                        onTap: () async {
+                          final f = await AttachmentService.fileFor(a.filePath);
+                          if (await f.exists()) {
+                            await ShareService.shareFile(
+                              f,
+                              mime: a.mime ?? 'application/octet-stream',
+                              subject: a.fileName,
+                            );
+                          } else if (context.mounted) {
+                            showSnack(context, 'File lampiran tidak ditemukan');
                           }
                         },
+                        trailing: IconButton(
+                          tooltip: 'Hapus lampiran',
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () async {
+                            if (await confirmDialog(
+                              context,
+                              title: 'Hapus lampiran?',
+                              message: a.fileName,
+                              ok: 'Hapus',
+                              danger: true,
+                            )) {
+                              await repo.deleteAttachment(a.id);
+                            }
+                          },
+                        ),
                       ),
-                    ),
-                ]),
+                  ],
+                ),
         );
       },
     );

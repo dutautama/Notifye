@@ -96,22 +96,26 @@ class _ItemFormScreenState extends ConsumerState<ItemFormScreen> {
     final total = _int(_total);
     final progress = _int(_progress) == null ? null : clampProgress(_int(_progress)!, total);
     final (started, finished) = applyStatusDates(_status, _started, _finished, DateTime.now());
-    final id = await ref.read(koleksiRepositoryProvider).save(WatchlistItemsCompanion(
-          id: _isEdit ? Value(widget.itemId!) : const Value.absent(),
-          type: Value(_type),
-          title: Value(_title.text.trim()),
-          creator: _v(_creator),
-          url: _v(_url),
-          platform: _v(_platform),
-          status: Value(_status),
-          rating: Value(_rating),
-          review: _v(_review),
-          progress: Value(progress),
-          progressTotal: Value(total),
-          startedAt: Value(started),
-          finishedAt: Value(finished),
-          coverPath: Value(_cover),
-        ));
+    final id = await ref
+        .read(koleksiRepositoryProvider)
+        .save(
+          WatchlistItemsCompanion(
+            id: _isEdit ? Value(widget.itemId!) : const Value.absent(),
+            type: Value(_type),
+            title: Value(_title.text.trim()),
+            creator: _v(_creator),
+            url: _v(_url),
+            platform: _v(_platform),
+            status: Value(_status),
+            rating: Value(_rating),
+            review: _v(_review),
+            progress: Value(progress),
+            progressTotal: Value(total),
+            startedAt: Value(started),
+            finishedAt: Value(finished),
+            coverPath: Value(_cover),
+          ),
+        );
     if (!mounted) return;
     if (_isEdit) {
       context.pop();
@@ -121,7 +125,11 @@ class _ItemFormScreenState extends ConsumerState<ItemFormScreen> {
   }
 
   Future<DateTime?> _date(DateTime? initial) => showDatePicker(
-      context: context, initialDate: initial ?? DateTime.now(), firstDate: DateTime(1990), lastDate: DateTime(2100));
+    context: context,
+    initialDate: initial ?? DateTime.now(),
+    firstDate: DateTime(1990),
+    lastDate: DateTime(2100),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -134,39 +142,49 @@ class _ItemFormScreenState extends ConsumerState<ItemFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: () async {
-                  final r = await AttachmentService.pick('koleksi', type: FileType.image);
-                  if (r != null) setState(() => _cover = r.$1);
-                },
-                child: AttachmentImage(_cover, size: 72, fallback: Icons.add_photo_alternate_outlined),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  controller: _title,
-                  maxLines: 2,
-                  minLines: 1,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(labelText: 'Judul *'),
-                  validator: (v) => Validators.required(v, 'Judul wajib diisi'),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () async {
+                    final r = await AttachmentService.pick('koleksi', type: FileType.image);
+                    if (r != null) setState(() => _cover = r.$1);
+                  },
+                  child: AttachmentImage(_cover, size: 72, fallback: Icons.add_photo_alternate_outlined),
                 ),
-              ),
-            ]),
-            const SizedBox(height: 16),
-            Wrap(spacing: 8, runSpacing: 4, children: [
-              for (final e in watchlistTypeLabels.entries)
-                ChoiceChip(
-                  avatar: Icon(e.value.$2, size: 18),
-                  label: Text(e.value.$1),
-                  selected: _type == e.key,
-                  onSelected: (_) => setState(() => _type = e.key),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _title,
+                    maxLines: 2,
+                    minLines: 1,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: const InputDecoration(labelText: 'Judul *'),
+                    validator: (v) => Validators.required(v, 'Judul wajib diisi'),
+                  ),
                 ),
-            ]),
+              ],
+            ),
             const SizedBox(height: 16),
-            TextFormField(controller: _creator, decoration: const InputDecoration(labelText: 'Penulis / sumber / channel')),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final e in watchlistTypeLabels.entries)
+                  ChoiceChip(
+                    avatar: Icon(e.value.$2, size: 18),
+                    label: Text(e.value.$1),
+                    selected: _type == e.key,
+                    onSelected: (_) => setState(() => _type = e.key),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _creator,
+              decoration: const InputDecoration(labelText: 'Penulis / sumber / channel'),
+            ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _url,
@@ -181,35 +199,46 @@ class _ItemFormScreenState extends ConsumerState<ItemFormScreen> {
             ),
             const SizedBox(height: 16),
             TextFormField(
-                controller: _platform,
-                decoration: const InputDecoration(labelText: 'Platform', hintText: 'mis. YouTube, Netflix, Gramedia')),
+              controller: _platform,
+              decoration: const InputDecoration(labelText: 'Platform', hintText: 'mis. YouTube, Netflix, Gramedia'),
+            ),
             const SizedBox(height: 16),
             const Text('Status'),
             const SizedBox(height: 8),
-            Wrap(spacing: 8, runSpacing: 4, children: [
-              for (final e in watchlistStatusLabels.entries)
-                ChoiceChip(label: Text(e.value), selected: _status == e.key, onSelected: (_) => setState(() => _status = e.key)),
-            ]),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final e in watchlistStatusLabels.entries)
+                  ChoiceChip(
+                    label: Text(e.value),
+                    selected: _status == e.key,
+                    onSelected: (_) => setState(() => _status = e.key),
+                  ),
+              ],
+            ),
             const SizedBox(height: 16),
-            Row(children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _progress,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(labelText: 'Progress ($unit)'),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _progress,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(labelText: 'Progress ($unit)'),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  controller: _total,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(labelText: 'Total ($unit)'),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _total,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(labelText: 'Total ($unit)'),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const SizedBox(height: 16),
             const Text('Rating'),
             StarRating(value: _rating, onChanged: (r) => setState(() => _rating = r)),
@@ -247,7 +276,13 @@ class _ItemFormScreenState extends ConsumerState<ItemFormScreen> {
               TextButton.icon(
                 style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
                 onPressed: () async {
-                  if (await confirmDialog(context, title: 'Hapus item?', message: _title.text, ok: 'Hapus', danger: true)) {
+                  if (await confirmDialog(
+                    context,
+                    title: 'Hapus item?',
+                    message: _title.text,
+                    ok: 'Hapus',
+                    danger: true,
+                  )) {
                     await ref.read(koleksiRepositoryProvider).softDelete(widget.itemId!);
                     if (context.mounted) context.go('/koleksi');
                   }
