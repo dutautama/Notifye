@@ -54,10 +54,11 @@ Baca file ini dulu di setiap sesi SEBELUM menjawab. Perbarui bagian **Status Mod
 ## Status Setup Pemilik
 | Langkah | Status |
 |---|---|
-| Project Supabase dibuat | ⬜ belum |
-| SQL `0001_init.sql` dijalankan | ⬜ belum |
-| User admin dibuat + signup publik dimatikan | ⬜ belum |
-| Secrets `SUPABASE_URL`, `SUPABASE_KEY` | ⬜ belum |
+| Project Supabase `nxxdqwihakidyhkonxgm` (ap-southeast-1) — terhubung via konektor Supabase MCP | ✅ |
+| Migrasi 0001 init + 0002 harden_functions diterapkan Claude via MCP; Security Advisor 0 temuan | ✅ |
+| Migrasi 0003 single_admin_lock | ⏳ menunggu persetujuan pemilik di prompt konektor |
+| User admin dibuat (pemilik, via dashboard) | ⬜ belum |
+| URL & publishable key → default di workflow (tidak perlu secret) | ✅ |
 | Secrets keystore (4 buah) — file sudah dikirim ke pemilik via chat 2026-11-22 | ⬜ belum |
 | APK diinstal & login berhasil | ⬜ belum |
 
@@ -115,7 +116,8 @@ test/                  # unit test (wajib untuk logika murni)
    - Setiap tabel baru WAJIB: kolom `owner_id uuid not null default auth.uid()`,
      `enable row level security`, policy `owner_all` (lihat 0001_init.sql bagian G).
    - View WAJIB `with (security_invoker = true)`.
-   - Jangan pernah menaruh URL/key/password di kode. Gunakan `--dart-define` dari GitHub Secrets.
+   - Jangan pernah menaruh password/secret/service_role key di kode. URL & publishable key Supabase
+     (publik by design) ada sebagai default di workflow (`DEFAULT_SUPABASE_*`), disuntik via `--dart-define`.
    - Jangan pakai `service_role` key di aplikasi.
    - Kolom berakhiran `_enc` dienkripsi di perangkat (AES-GCM) sebelum dikirim.
    - Repo ini **publik** → jangan commit keystore, `key.properties`, `.env`, atau data pelanggan.
@@ -134,8 +136,7 @@ test/                  # unit test (wajib untuk logika murni)
 ## Secrets GitHub Actions (diisi pemilik via browser)
 | Secret | Isi |
 |---|---|
-| `SUPABASE_URL` | `https://<ref>.supabase.co` |
-| `SUPABASE_KEY` | Publishable key (`sb_publishable_...`) atau anon key lama |
+| `SUPABASE_URL` / `SUPABASE_KEY` | opsional — menimpa `DEFAULT_SUPABASE_*` di workflow |
 | `KEYSTORE_BASE64` | keystore rilis dalam base64 |
 | `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` | kredensial keystore |
 
@@ -164,6 +165,10 @@ test/                  # unit test (wajib untuk logika murni)
 - Logika murni ditaruh sebagai fungsi top-level di service agar bisa di-unit-test (contoh `dashboard_service.dart`).
 
 ## Catatan Pelajaran
+- Supabase MCP: migrasi diterapkan Claude langsung (`apply_migration`), file SQL tetap disimpan di `supabase/migrations/`.
+  Project free tier bisa ter-pause (INACTIVE) → `restore_project`, tunggu `ACTIVE_HEALTHY`.
+  Migrasi yang menyentuh skema `auth` memicu prompt persetujuan ke pemilik (timeout 60 dtk) → beri tahu pemilik dulu.
+- Smoke test di DB asli tanpa meninggalkan data: blok `do $$ ... raise exception 'HASIL ...' $$` (otomatis rollback).
 - 2026-11-22: Skema 0001 diuji di Postgres 16 lokal dengan mock `auth.uid()`:
   stok, status bayar, v_debts, hapus transaksi (stok kembali), sinkron publikasi→jadwal→ide, dan isolasi RLS antar user semuanya lolos.
 - FK cascade berjalan SETELAH baris induk terhapus → trigger item tidak bisa membaca `transactions.type`;

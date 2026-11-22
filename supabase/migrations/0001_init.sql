@@ -744,5 +744,5 @@ create policy "assets_owner_delete" on storage.objects
 
 -- =====================================================================
 -- Selesai. Langkah berikut: Authentication → Users → Add user (admin),
--- lalu matikan pendaftaran publik (lihat docs/SETUP_SUPABASE.md).
+-- lalu matikan pendaftaran publik (lihat README.md).
 -- =====================================================================

@@ -9,35 +9,23 @@ Dibangun dengan Flutter + Supabase, APK dibuat otomatis oleh GitHub Actions.
 
 ---
 
-## 1. Siapkan Supabase (sekali saja, ±10 menit)
+## 1. Supabase (sudah dikerjakan Claude lewat konektor)
 
-1. Buka **supabase.com** di Chrome ponsel → Sign in → **New project**.
-   Pilih region **Southeast Asia (Singapore)**, buat password database yang kuat, simpan.
-2. Setelah project siap: menu ☰ → **SQL Editor** → **New query**.
-3. Buka file [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) di GitHub →
-   tombol **Raw** → tekan lama → **Pilih semua** → **Salin**.
-4. Tempel di SQL Editor → **Run**. Harus muncul *Success. No rows returned*.
-5. Buat akun admin: menu **Authentication → Users → Add user → Create new user**.
-   Isi email & password Anda, centang **Auto Confirm User**.
-6. Matikan pendaftaran publik (agar hanya Anda yang bisa login):
-   **Authentication → Sign In / Providers** → matikan **Allow new users to sign up** → Save.
-7. Ambil kredensial: **Project Settings → Data API** salin **Project URL**;
-   **Project Settings → API Keys** salin **Publishable key** (`sb_publishable_...`).
-   > Jangan pernah memakai `secret` / `service_role` key di aplikasi.
+Project `nxxdqwihakidyhkonxgm` (Singapore): tabel, trigger, RLS, storage, dan pengerasan keamanan
+sudah diterapkan (`supabase/migrations/0001`–`0003`). Security Advisor: 0 temuan.
+Database hanya menerima **satu akun admin** (migrasi 0003).
 
-**Cek:** menu **Table Editor** → terlihat tabel `products`, `transactions`, `content_ideas`, dst.
-dengan label **RLS enabled**.
+Yang dikerjakan pemilik: membuat akun admin di **Authentication → Users → Add user → Create new user**
+(centang **Auto Confirm User**).
 
-## 2. Isi Secrets di GitHub (sekali saja)
+## 2. Secrets GitHub (hanya kunci tanda tangan APK)
 
-Di Chrome: buka repo ini → **Settings** (mode *Desktop site* jika menu tidak terlihat) →
-**Secrets and variables → Actions → New repository secret**. Buat:
+URL & publishable key Supabase sudah tertanam di workflow (keduanya memang publik).
+Isi 4 secret di **Settings → Secrets and variables → Actions → New repository secret**:
 
 | Name | Value |
 |---|---|
-| `SUPABASE_URL` | Project URL dari langkah 1.7 |
-| `SUPABASE_KEY` | Publishable key dari langkah 1.7 |
-| `KEYSTORE_BASE64` | dari file `KEYSTORE_BASE64.txt` yang dikirim Claude |
+| `KEYSTORE_BASE64` | isi file `KEYSTORE_BASE64.txt` yang dikirim Claude |
 | `KEYSTORE_PASSWORD` | dari file `PETUNJUK_SECRETS.txt` |
 | `KEY_ALIAS` | `usahakonten` |
 | `KEY_PASSWORD` | dari file `PETUNJUK_SECRETS.txt` |

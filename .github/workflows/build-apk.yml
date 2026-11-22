@@ -25,6 +25,11 @@ permissions:
 
 env:
   FLUTTER_VERSION: '3.50.1'
+  # Alamat & publishable key Supabase memang PUBLIK (tertanam di setiap APK;
+  # data dilindungi RLS + kunci admin tunggal). Secret dengan nama sama, jika
+  # diisi, akan menimpa nilai ini. JANGAN pernah taruh secret/service_role key di sini.
+  DEFAULT_SUPABASE_URL: 'https://nxxdqwihakidyhkonxgm.supabase.co'
+  DEFAULT_SUPABASE_KEY: 'sb_publishable_p68X022EK7-0tm9_1cer4g_MZwrmSh1'
 
 jobs:
   build:
@@ -59,15 +64,6 @@ jobs:
       - name: Jalankan unit test
         run: flutter test
 
-      - name: Cek secrets Supabase
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        run: |
-          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
-            echo "::warning title=Secrets belum diisi::SUPABASE_URL / SUPABASE_KEY kosong. APK tetap dibangun tetapi akan menampilkan layar 'Konfigurasi Belum Lengkap'."
-          fi
-
       - name: Siapkan kunci tanda tangan (keystore)
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -90,8 +86,8 @@ jobs:
 
       - name: Build APK rilis
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || env.DEFAULT_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY || env.DEFAULT_SUPABASE_KEY }}
         run: |
           VERSION_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
           flutter build apk --release \
