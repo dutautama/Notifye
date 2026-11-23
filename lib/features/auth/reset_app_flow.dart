@@ -34,6 +34,7 @@ Future<void> runResetAppFlow(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
   try {
     await AppResetService(ref.read(databaseProvider), ref.read(pinServiceProvider)).resetAll();
+    await ref.read(invoiceSignerProvider).clear();
     ref.read(authControllerProvider.notifier).markReset();
     messenger.showSnackBar(const SnackBar(content: Text('Aplikasi sudah direset')));
   } catch (e) {

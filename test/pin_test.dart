@@ -1,38 +1,11 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:usahakonten/features/auth/pin_hasher.dart';
 import 'package:usahakonten/features/auth/pin_service.dart';
 
-/// Penyimpanan palsu di memori untuk menguji PinService tanpa perangkat.
-class FakeSecureStorage extends Fake implements FlutterSecureStorage {
-  final Map<String, String> data = {};
-
-  @override
-  Future<String?> read({required String key, AppleOptions? iOptions, AndroidOptions? aOptions,
-          LinuxOptions? lOptions, WebOptions? webOptions, AppleOptions? mOptions,
-          WindowsOptions? wOptions}) async =>
-      data[key];
-
-  @override
-  Future<void> write({required String key, required String? value, AppleOptions? iOptions,
-      AndroidOptions? aOptions, LinuxOptions? lOptions, WebOptions? webOptions,
-      AppleOptions? mOptions, WindowsOptions? wOptions}) async {
-    if (value == null) {
-      data.remove(key);
-    } else {
-      data[key] = value;
-    }
-  }
-
-  @override
-  Future<void> delete({required String key, AppleOptions? iOptions, AndroidOptions? aOptions,
-          LinuxOptions? lOptions, WebOptions? webOptions, AppleOptions? mOptions,
-          WindowsOptions? wOptions}) async =>
-      data.remove(key);
-}
+import 'helpers/fake_secure_storage.dart';
 
 void main() {
   test('PBKDF2 sesuai vektor uji RFC 7914 (1 iterasi, blok pertama)', () {

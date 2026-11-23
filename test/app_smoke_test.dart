@@ -118,6 +118,8 @@ void main() {
     await visit('/koleksi/$itemId/ubah', 'Ubah item');
     await visit('/profil-usaha', 'Nama usaha');
     await visit('/printer', 'Lebar kertas');
+    await visit('/tanda-tangan', 'Tampilkan QR tanda tangan');
+    await visit('/verifikasi-invoice', 'Pindai QR invoice');
     await visit('/ubah-pin', 'PIN lama');
 
     // Tab kalender & publikasi di halaman konten.

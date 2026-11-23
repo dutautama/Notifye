@@ -141,6 +141,7 @@ Semua fitur wajib selesai (skema v1, tidak ada perubahan skema sejak migrasi off
 Skema v2 DISETUJUI pemilik 2026-11-22 & dirilis (6 tabel + notes_fts). Perubahan skema berikutnya = v3, wajib konfirmasi lagi.
 Hasil cek: FTS5 tersedia di SQLite 3.54 bawaan sqlite3 3.x; receive_sharing_intent 1.9.0 aktif.
 iOS: kode & build IPA unsigned ✅; penandatanganan/TestFlight ⏳ menunggu keputusan pemilik.
+Invoice v1.4.0: QR tanda tangan digital Ed25519 + layar Verifikasi invoice (tanpa perubahan skema; pengaturan di tabel meta).
 Ide lanjutan (belum diminta): enkripsi database (SQLCipher), backup terenkripsi password, kunci biometrik.
 
 ## Pola yang sudah ada (pakai ulang!)
@@ -162,6 +163,10 @@ Ide lanjutan (belum diminta): enkripsi database (SQLCipher), backup terenkripsi 
 - Folder lampiran: `AppResetService.attachmentsDir()` (`<documents>/attachments`).
 
 ## Catatan Pelajaran
+- Tanda tangan invoice: `InvoiceSigner` (Ed25519 via `cryptography`, seed 32 byte di flutter_secure_storage,
+  kunci publik + nama/jabatan penanda tangan + saklar QR di tabel `meta`). QR = teks terbaca manusia + `Sig:`
+  atas baris kanonik (nilai dibersihkan dari baris baru). Kunci TIDAK ikut backup (sengaja) → HP baru = kunci baru,
+  verifikasi invoice lama → "dibuat dengan kunci lain". Diuji vektor RFC 8032 & dekode QR dari PDF (zxing).
 - `receive_sharing_intent` 1.9 butuh compileSdk 37 → `compileSdk = maxOf(flutter.compileSdkVersion, 37)`.
   Plugin baru bisa menaikkan syarat compileSdk: baca log `checkReleaseAarMetadata` bila build APK gagal.
 - Workflow: IPA hanya ditambahkan ke Release lewat job `ios-release` (needs build+ios) — mencegah Release

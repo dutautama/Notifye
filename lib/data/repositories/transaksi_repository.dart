@@ -214,6 +214,9 @@ class TransaksiRepository {
     ];
   }
 
+  Future<Trx?> getByNumber(String number) =>
+      (_db.select(_db.transactions)..where((t) => t.number.equals(number))).getSingleOrNull();
+
   Future<Trx?> getById(String id) => (_db.select(_db.transactions)..where((t) => t.id.equals(id))).getSingleOrNull();
 
   /// Batalkan transaksi (soft delete) → trigger mengembalikan stok.

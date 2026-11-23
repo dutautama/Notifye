@@ -27,7 +27,9 @@ import '../features/dashboard/dashboard_screen.dart';
 import '../features/notes/note_editor_screen.dart';
 import '../features/notes/notes_screen.dart';
 import '../features/reports/reports_screen.dart';
+import '../features/business/transactions/invoice_verify_screen.dart';
 import '../features/settings/backup_screen.dart';
+import '../features/settings/invoice_signature_screen.dart';
 import '../features/settings/business_profile_screen.dart';
 import '../features/settings/printer_screen.dart';
 import '../features/settings/settings_screen.dart';
@@ -70,6 +72,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/printer', builder: (_, _) => const PrinterScreen()),
       GoRoute(path: '/laporan', builder: (_, _) => const ReportsScreen()),
       GoRoute(path: '/pengaturan', builder: (_, _) => const SettingsScreen()),
+      GoRoute(path: '/tanda-tangan', builder: (_, _) => const InvoiceSignatureScreen()),
+      GoRoute(path: '/verifikasi-invoice', builder: (_, _) => const InvoiceVerifyScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => MainShell(shell: shell),
         branches: [

@@ -43,7 +43,9 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
 
   Future<void> _sharePdf(InvoiceData d) => _guard(() async {
     final logo = d.profile.logoPath == null ? null : await AttachmentService.fileFor(d.profile.logoPath!);
-    final bytes = await buildInvoicePdf(d, logoFile: logo);
+    final signer = ref.read(invoiceSignerProvider);
+    final qr = await signer.qrEnabled() ? await signer.sign(d) : null;
+    final bytes = await buildInvoicePdf(d, logoFile: logo, qr: qr);
     final file = await ShareService.saveTemp('${d.trx.number}.pdf', bytes);
     final party = d.customer?.name ?? d.supplier?.name;
     await ShareService.shareFile(

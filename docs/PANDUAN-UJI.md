@@ -32,5 +32,13 @@
 | 24 | **Beranda** | Kartu "Sedang dibaca / ditonton" & "Catatan terbaru" tampil |
 | 25 | Backup → pulihkan di HP lain | Catatan, lampiran, & koleksi ikut kembali |
 
+## Tanda tangan QR invoice (v1.4.0)
+| # | Langkah | Hasil yang benar |
+|---|---|---|
+| 26 | ⚙ Pengaturan → **Tanda tangan invoice (QR)** → isi nama & jabatan → Simpan | Tersimpan |
+| 27 | Buka transaksi → **Invoice PDF** | Pojok kanan bawah: "Hormat kami", QR, nama penanda tangan |
+| 28 | Pindai QR itu dengan kamera HP biasa | Muncul teks nomor, tanggal, total, dibayar, status |
+| 29 | Usaha → **Verifikasi invoice** → Pindai QR invoice | **ASLI** + "Sesuai dengan data transaksi terkini" |
+
 Izin yang akan diminta Android (hanya saat fitur dipakai): **Kamera** (scan barcode),
 **Perangkat di sekitar** (printer Bluetooth). Aplikasi tidak meminta izin internet.

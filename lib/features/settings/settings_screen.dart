@@ -32,6 +32,13 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/printer'),
           ),
+          ListTile(
+            leading: const Icon(Icons.qr_code_2),
+            title: const Text('Tanda tangan invoice (QR)'),
+            subtitle: const Text('QR tanda tangan digital & verifikasi invoice'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/tanda-tangan'),
+          ),
           const _Header('Data'),
           ListTile(
             leading: const Icon(Icons.backup_outlined),

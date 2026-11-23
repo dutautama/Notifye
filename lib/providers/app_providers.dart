@@ -12,6 +12,7 @@ import '../data/repositories/produk_repository.dart';
 import '../data/repositories/transaksi_repository.dart';
 import '../features/auth/pin_service.dart';
 import '../services/backup/backup_service.dart';
+import '../services/documents/invoice_signature.dart';
 import '../services/printer_service.dart';
 import '../services/report_service.dart';
 
@@ -55,3 +56,5 @@ final reportServiceProvider = Provider(
 final catatanRepositoryProvider = Provider((ref) => CatatanRepository(ref.watch(databaseProvider)));
 
 final koleksiRepositoryProvider = Provider((ref) => KoleksiRepository(ref.watch(databaseProvider)));
+
+final invoiceSignerProvider = Provider((ref) => InvoiceSigner(ref.watch(metaRepositoryProvider)));

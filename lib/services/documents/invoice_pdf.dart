@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../../core/formatters.dart';
 import '../../data/repositories/invoice_repository.dart';
+import 'invoice_signature.dart';
 
 String _safe(String s) => s.replaceAll(' ', ' ').replaceAll(RegExp(r'[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]'), '?');
 String _rp(double v) => _safe(Fmt.rupiah(v));
@@ -14,7 +15,8 @@ String _qty(double v) => v == v.roundToDouble() ? v.toInt().toString() : v.toStr
 const _statusLabel = {'lunas': 'LUNAS', 'sebagian': 'DIBAYAR SEBAGIAN', 'belum': 'BELUM DIBAYAR'};
 
 /// PDF invoice (penjualan) / purchase order (pembelian) ukuran A4.
-Future<Uint8List> buildInvoicePdf(InvoiceData d, {File? logoFile}) async {
+/// [qr] (opsional) = tanda tangan digital berbentuk QR di pojok kanan bawah.
+Future<Uint8List> buildInvoicePdf(InvoiceData d, {File? logoFile, InvoiceQrPayload? qr}) async {
   final t = d.trx;
   final isSale = t.type == 'sale';
   final party = isSale
@@ -145,7 +147,11 @@ Future<Uint8List> buildInvoicePdf(InvoiceData d, {File? logoFile}) async {
           pw.Text(_safe(d.profile.bankInfo!)),
         ],
         if (t.notes != null) ...[pw.SizedBox(height: 12), pw.Text('Catatan: ${_safe(t.notes!)}')],
-        if (d.profile.invoiceFooter != null) ...[
+        if (qr != null) ...[
+        pw.SizedBox(height: 24),
+        pw.Align(alignment: pw.Alignment.centerRight, child: _signatureBlock(qr, accent)),
+      ],
+      if (d.profile.invoiceFooter != null) ...[
           pw.SizedBox(height: 24),
           pw.Center(
             child: pw.Text(_safe(d.profile.invoiceFooter!), style: const pw.TextStyle(color: PdfColors.grey700)),
@@ -170,3 +176,26 @@ pw.Widget _sum(String label, String value, {bool bold = false}) {
     ),
   );
 }
+
+
+/// Blok "Hormat kami" + QR tanda tangan digital + nama penanda tangan.
+pw.Widget _signatureBlock(InvoiceQrPayload qr, PdfColor accent) => pw.Container(
+      width: 190,
+      child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
+        pw.Text('Hormat kami,'),
+        pw.SizedBox(height: 6),
+        pw.BarcodeWidget(
+          barcode: pw.Barcode.qrCode(errorCorrectLevel: pw.BarcodeQRCorrectionLevel.medium),
+          data: qr.encode(),
+          width: 110,
+          height: 110,
+        ),
+        pw.SizedBox(height: 6),
+        pw.Text(_safe(qr.signer), style: pw.TextStyle(fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.center),
+        pw.Container(width: 150, height: 0.8, color: PdfColors.grey600, margin: const pw.EdgeInsets.symmetric(vertical: 2)),
+        pw.Text('Ditandatangani secara digital',
+            style: pw.TextStyle(fontSize: 8, color: accent), textAlign: pw.TextAlign.center),
+        pw.Text('Kunci ${qr.keyId} - pindai QR untuk verifikasi',
+            style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700), textAlign: pw.TextAlign.center),
+      ]),
+    );
