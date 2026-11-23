@@ -20,7 +20,7 @@ void main() {
     // 1) Buat database lalu "turunkan" ke bentuk v1 persis: hapus objek v2 & set user_version = 1.
     var db = AppDatabase(NativeDatabase(file));
     final p = await db.into(db.products).insertReturning(ProductsCompanion.insert(
-        name: 'Kaos', trackStock: const Value(true), stock: const Value(10)));
+        name: 'Kaos', trackStock: const Value(true), stock: const Value(10), buyPrice: const Value(6000)));
     final t = await TransaksiRepository(db, InvoiceRepository(db)).createTransaction(TrxInput(
         type: 'sale', initialPayment: 5000, items: [TrxItemInput(productId: p.id, name: 'Kaos', qty: 2, price: 10000)]));
     for (final trg in ['trg_notes_fts_ai', 'trg_notes_fts_au', 'trg_notes_fts_ad']) {
@@ -30,6 +30,7 @@ void main() {
     for (final tbl in _v2Tables.reversed) {
       await db.customStatement('DROP TABLE $tbl');
     }
+    await db.customStatement('ALTER TABLE transaction_items DROP COLUMN unit_cost');
     await db.customStatement('PRAGMA user_version = 1');
     await db.close();
 
@@ -41,7 +42,9 @@ void main() {
     expect(tables, containsAll([..._v2Tables, 'notes_fts']));
     final ver = await db.customSelect('PRAGMA user_version').getSingle();
     expect(ver.data.values.first, currentSchemaVersion);
-    expect((await db.select(db.meta).get()).firstWhere((m) => m.key == 'schema_version').value, '2');
+    expect((await db.select(db.meta).get()).firstWhere((m) => m.key == 'schema_version').value, '$currentSchemaVersion');
+    // v3: modal item lama diisi perkiraan dari harga modal produk.
+    expect((await db.select(db.transactionItems).getSingle()).unitCost, 6000);
 
     // Data v1 utuh & trigger v1 tetap bekerja.
     final trx = await (db.select(db.transactions)..where((x) => x.id.equals(t.id))).getSingle();
@@ -57,7 +60,33 @@ void main() {
     await dir.delete(recursive: true);
   });
 
-  test('instalasi baru langsung v2 dengan FTS & trigger', () async {
+  test('upgrade v2 → v3: modal item penjualan diisi, item manual & pembelian aman', () async {
+    final dir = await Directory.systemTemp.createTemp('uk_mig3');
+    final file = File('${dir.path}/db.sqlite');
+    var db = AppDatabase(NativeDatabase(file));
+    final p = await db.into(db.products).insertReturning(ProductsCompanion.insert(name: 'Kaos', buyPrice: const Value(30000)));
+    final repo = TransaksiRepository(db, InvoiceRepository(db));
+    await repo.createTransaction(TrxInput(type: 'sale', items: [
+      TrxItemInput(productId: p.id, name: 'Kaos', qty: 2, price: 50000),
+      const TrxItemInput(name: 'Ongkir', qty: 1, price: 10000),
+    ]));
+    await repo.createTransaction(TrxInput(type: 'purchase', items: [TrxItemInput(productId: p.id, name: 'Kaos', qty: 1, price: 28000)]));
+    await db.customStatement('ALTER TABLE transaction_items DROP COLUMN unit_cost');
+    await db.customStatement('PRAGMA user_version = 2');
+    await db.close();
+
+    db = AppDatabase(NativeDatabase(file));
+    final items = await db.select(db.transactionItems).get();
+    expect(items.firstWhere((i) => i.name == 'Ongkir').unitCost, 0);
+    final sale = items.firstWhere((i) => i.name == 'Kaos' && i.price == 50000);
+    expect(sale.unitCost, 30000);
+    final purchase = items.firstWhere((i) => i.price == 28000);
+    expect(purchase.unitCost, 0, reason: 'item pembelian lama tidak diisi (bukan dasar laba)');
+    await db.close();
+    await dir.delete(recursive: true);
+  });
+
+  test('instalasi baru langsung versi terbaru dengan FTS & trigger', () async {
     final db = AppDatabase(NativeDatabase.memory());
     final n = await db.into(db.notes).insertReturning(NotesCompanion.insert(title: const Value('Halo'), body: const Value('dunia')));
     await (db.update(db.notes)..where((x) => x.id.equals(n.id))).write(const NotesCompanion(body: Value('semesta')));

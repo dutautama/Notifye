@@ -89,16 +89,18 @@ class _DashboardBody extends StatelessWidget {
         TwoColumnGrid(
           children: [
             StatCard(
-              label: 'Omzet hari ini',
-              value: Fmt.rupiah(s.salesToday),
-              caption: '${s.trxCountToday} transaksi',
+              label: 'Laba hari ini',
+              value: Fmt.rupiah(s.profitToday),
+              caption: 'Omzet ${Fmt.rupiah(s.salesToday)} • ${s.trxCountToday} trx',
               icon: Icons.today,
+              color: s.profitToday < 0 ? Theme.of(context).colorScheme.error : null,
             ),
             StatCard(
-              label: 'Omzet bulan ini',
-              value: Fmt.rupiah(s.salesThisMonth),
-              caption: '${s.trxCountThisMonth} transaksi',
+              label: 'Laba bulan ini',
+              value: Fmt.rupiah(s.profitThisMonth),
+              caption: 'Omzet ${Fmt.rupiah(s.salesThisMonth)} • ${s.trxCountThisMonth} trx',
               icon: Icons.calendar_month,
+              color: s.profitThisMonth < 0 ? Theme.of(context).colorScheme.error : null,
             ),
             StatCard(
               label: 'Piutang',
@@ -120,7 +122,7 @@ class _DashboardBody extends StatelessWidget {
 
         // --- Grafik 7 hari ------------------------------------------------
         SectionCard(
-          title: 'Penjualan 7 hari terakhir',
+          title: 'Laba 7 hari terakhir',
           icon: Icons.show_chart,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),

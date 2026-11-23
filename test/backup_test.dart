@@ -203,6 +203,21 @@ void main() {
     expect((await b.db.select(b.db.products).get()).single.name, 'Aman');
   });
 
+  test('restore backup v2 (sebelum ada modal per item) → modal diisi dari harga modal produk', () async {
+    await seed(a);
+    await (a.db.update(a.db.products)).write(const ProductsCompanion(buyPrice: Value(30000)));
+    final data = jsonDecode(jsonEncode(await BackupCodec(a.db).exportData())) as Map<String, dynamic>;
+    data['schema_version'] = 2;
+    for (final row in (data['tables'] as Map)['transaction_items'] as List) {
+      (row as Map).remove('unit_cost');
+    }
+    final f = File('${tmp.path}/v2.json')..writeAsStringSync(jsonEncode(data));
+    await b.backup.restore(await b.backup.parse(f), RestoreMode.replace);
+    final items = await b.db.select(b.db.transactionItems).get();
+    expect(items, isNotEmpty);
+    expect(items.every((i) => i.unitCost == 30000), isTrue);
+  });
+
   test('zip slip: path lampiran berbahaya ditolak', () async {
     expect(BackupService.safeAttachmentPath('produk/a.jpg'), 'produk/a.jpg');
     for (final bad in ['../x', 'a/../../x', '/etc/passwd', 'C:/x', 'a//b', '']) {

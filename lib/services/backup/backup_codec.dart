@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/migrations/migration_strategy.dart';
 import '../../data/database/migrations/schema_v2.dart';
+import '../../data/database/migrations/schema_v3.dart';
 
 const backupFormat = 'usahakonten-backup';
 
@@ -170,6 +171,22 @@ class BackupCodec {
 
         if (mode == RestoreMode.merge) {
           await _applyStockForMergedTransactions(newTrxIds, preexistingProducts);
+        }
+
+        // Backup sebelum v3 tidak punya modal per item → isi perkiraan dari harga modal produk,
+        // hanya untuk item yang berasal dari backup ini.
+        if (v.schemaVersion < 3) {
+          final ids = [
+            for (final r in (v.tables['transaction_items'] as List?) ?? const [])
+              if (r is Map<String, dynamic> && r['id'] is String) r['id'] as String,
+          ];
+          for (var i = 0; i < ids.length; i += 500) {
+            final chunk = ids.sublist(i, i + 500 > ids.length ? ids.length : i + 500);
+            await _db.customUpdate(
+              backfillUnitCostSql(idFilter: ' AND id IN (${List.filled(chunk.length, '?').join(',')})'),
+              variables: [for (final id in chunk) Variable.withString(id)],
+            );
+          }
         }
 
         for (final sql in rebuildNotesFts) {

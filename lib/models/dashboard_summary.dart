@@ -9,6 +9,8 @@ class DashboardSummary {
     required this.salesToday,
     required this.trxCountToday,
     required this.salesThisMonth,
+    this.profitToday = 0,
+    this.profitThisMonth = 0,
     required this.trxCountThisMonth,
     required this.last7Days,
     required this.receivableTotal,
@@ -27,6 +29,10 @@ class DashboardSummary {
   final double salesToday;
   final int trxCountToday;
   final double salesThisMonth;
+
+  /// Laba (margin) = penjualan − modal (tanpa pajak).
+  final double profitToday;
+  final double profitThisMonth;
   final int trxCountThisMonth;
 
   /// 7 hari terakhir (urut lama → baru), termasuk hari tanpa penjualan (0).
@@ -51,8 +57,9 @@ class DashboardSummary {
 }
 
 class DailySales {
-  const DailySales(this.date, this.omzet, this.trxCount);
+  const DailySales(this.date, this.omzet, this.trxCount, [this.profit = 0]);
   final DateTime date;
   final double omzet;
+  final double profit;
   final int trxCount;
 }

@@ -63,7 +63,7 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
     if (p == null || !mounted) return;
     final price = _isSale ? p.sellPrice : p.buyPrice;
     final item = await _editItemDialog(
-      DraftItem(productId: p.id, name: p.name, qty: 1, price: price, unit: p.unit),
+      DraftItem(productId: p.id, name: p.name, qty: 1, price: price, unit: p.unit, unitCost: _isSale ? p.buyPrice : price),
       stockInfo: p.trackStock ? 'Stok: ${Fmt.number(p.stock)} ${p.unit}' : null,
     );
     if (item != null) setState(() => addOrMergeItem(_items, item));
@@ -90,6 +90,7 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
     final name = TextEditingController(text: item.name);
     final qty = TextEditingController(text: QtyField.format(item.qty));
     final price = TextEditingController(text: ThousandsInputFormatter.format(item.price));
+    final cost = TextEditingController(text: ThousandsInputFormatter.format(item.unitCost ?? 0));
     final key = GlobalKey<FormState>();
     final ok = await showDialog<bool>(
       context: context,
@@ -112,6 +113,14 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
               QtyField(controller: qty, label: 'Jumlah (${item.unit})', required: true),
               const SizedBox(height: 12),
               MoneyField(controller: price, label: 'Harga satuan', required: true),
+              if (_isSale) ...[
+                const SizedBox(height: 12),
+                MoneyField(
+                  controller: cost,
+                  label: 'Modal per unit',
+                  helper: 'Untuk hitung laba. Kosongkan bila tanpa modal (jasa).',
+                ),
+              ],
             ],
           ),
         ),
@@ -134,11 +143,13 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
             qty: QtyField.read(qty),
             price: MoneyField.read(price),
             unit: item.unit,
+            unitCost: _isSale ? MoneyField.read(cost) : MoneyField.read(price),
           )
         : null;
     name.dispose();
     qty.dispose();
     price.dispose();
+    cost.dispose();
     return result;
   }
 
@@ -313,6 +324,10 @@ class _TrxFormScreenState extends ConsumerState<TrxFormScreen> {
                   if (t.tax > 0) _row('Pajak', Fmt.rupiah(t.tax)),
                   const Divider(),
                   _row('TOTAL', Fmt.rupiah(t.total), bold: true),
+                  if (_isSale && _items.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    _row('Perkiraan laba', Fmt.rupiah(estimateProfit(_items, t.discount))),
+                  ],
                 ],
               ),
             ),

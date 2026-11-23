@@ -4769,6 +4769,19 @@ class $TransactionItemsTable extends TransactionItems
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _unitCostMeta = const VerificationMeta(
+    'unitCost',
+  );
+  @override
+  late final GeneratedColumn<double> unitCost = GeneratedColumn<double>(
+    'unit_cost',
+    aliasedName,
+    false,
+    check: () => ComparableExpr(unitCost).isBiggerOrEqualValue(0),
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4780,6 +4793,7 @@ class $TransactionItemsTable extends TransactionItems
     qty,
     price,
     subtotal,
+    unitCost,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4855,6 +4869,12 @@ class $TransactionItemsTable extends TransactionItems
         subtotal.isAcceptableOrUnknown(data['subtotal']!, _subtotalMeta),
       );
     }
+    if (data.containsKey('unit_cost')) {
+      context.handle(
+        _unitCostMeta,
+        unitCost.isAcceptableOrUnknown(data['unit_cost']!, _unitCostMeta),
+      );
+    }
     return context;
   }
 
@@ -4900,6 +4920,10 @@ class $TransactionItemsTable extends TransactionItems
         DriftSqlType.double,
         data['${effectivePrefix}subtotal'],
       )!,
+      unitCost: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}unit_cost'],
+      )!,
     );
   }
 
@@ -4919,6 +4943,9 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
   final double qty;
   final double price;
   final double subtotal;
+
+  /// v3: modal per unit SAAT transaksi (snapshot harga modal produk) → dasar hitung laba.
+  final double unitCost;
   const TrxItem({
     required this.id,
     required this.createdAt,
@@ -4929,6 +4956,7 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
     required this.qty,
     required this.price,
     required this.subtotal,
+    required this.unitCost,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4943,6 +4971,7 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
     map['name'] = Variable<String>(name);
     map['qty'] = Variable<double>(qty);
     map['price'] = Variable<double>(price);
+    map['unit_cost'] = Variable<double>(unitCost);
     return map;
   }
 
@@ -4958,6 +4987,7 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
       name: Value(name),
       qty: Value(qty),
       price: Value(price),
+      unitCost: Value(unitCost),
     );
   }
 
@@ -4976,6 +5006,7 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
       qty: serializer.fromJson<double>(json['qty']),
       price: serializer.fromJson<double>(json['price']),
       subtotal: serializer.fromJson<double>(json['subtotal']),
+      unitCost: serializer.fromJson<double>(json['unitCost']),
     );
   }
   @override
@@ -4991,6 +5022,7 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
       'qty': serializer.toJson<double>(qty),
       'price': serializer.toJson<double>(price),
       'subtotal': serializer.toJson<double>(subtotal),
+      'unitCost': serializer.toJson<double>(unitCost),
     };
   }
 
@@ -5004,6 +5036,7 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
     double? qty,
     double? price,
     double? subtotal,
+    double? unitCost,
   }) => TrxItem(
     id: id ?? this.id,
     createdAt: createdAt ?? this.createdAt,
@@ -5014,6 +5047,7 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
     qty: qty ?? this.qty,
     price: price ?? this.price,
     subtotal: subtotal ?? this.subtotal,
+    unitCost: unitCost ?? this.unitCost,
   );
   @override
   String toString() {
@@ -5026,7 +5060,8 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
           ..write('name: $name, ')
           ..write('qty: $qty, ')
           ..write('price: $price, ')
-          ..write('subtotal: $subtotal')
+          ..write('subtotal: $subtotal, ')
+          ..write('unitCost: $unitCost')
           ..write(')'))
         .toString();
   }
@@ -5042,6 +5077,7 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
     qty,
     price,
     subtotal,
+    unitCost,
   );
   @override
   bool operator ==(Object other) =>
@@ -5055,7 +5091,8 @@ class TrxItem extends DataClass implements Insertable<TrxItem> {
           other.name == this.name &&
           other.qty == this.qty &&
           other.price == this.price &&
-          other.subtotal == this.subtotal);
+          other.subtotal == this.subtotal &&
+          other.unitCost == this.unitCost);
 }
 
 class TransactionItemsCompanion extends UpdateCompanion<TrxItem> {
@@ -5067,6 +5104,7 @@ class TransactionItemsCompanion extends UpdateCompanion<TrxItem> {
   final Value<String> name;
   final Value<double> qty;
   final Value<double> price;
+  final Value<double> unitCost;
   final Value<int> rowid;
   const TransactionItemsCompanion({
     this.id = const Value.absent(),
@@ -5077,6 +5115,7 @@ class TransactionItemsCompanion extends UpdateCompanion<TrxItem> {
     this.name = const Value.absent(),
     this.qty = const Value.absent(),
     this.price = const Value.absent(),
+    this.unitCost = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TransactionItemsCompanion.insert({
@@ -5088,6 +5127,7 @@ class TransactionItemsCompanion extends UpdateCompanion<TrxItem> {
     required String name,
     required double qty,
     required double price,
+    this.unitCost = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : transactionId = Value(transactionId),
        name = Value(name),
@@ -5102,6 +5142,7 @@ class TransactionItemsCompanion extends UpdateCompanion<TrxItem> {
     Expression<String>? name,
     Expression<double>? qty,
     Expression<double>? price,
+    Expression<double>? unitCost,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5113,6 +5154,7 @@ class TransactionItemsCompanion extends UpdateCompanion<TrxItem> {
       if (name != null) 'name': name,
       if (qty != null) 'qty': qty,
       if (price != null) 'price': price,
+      if (unitCost != null) 'unit_cost': unitCost,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5126,6 +5168,7 @@ class TransactionItemsCompanion extends UpdateCompanion<TrxItem> {
     Value<String>? name,
     Value<double>? qty,
     Value<double>? price,
+    Value<double>? unitCost,
     Value<int>? rowid,
   }) {
     return TransactionItemsCompanion(
@@ -5137,6 +5180,7 @@ class TransactionItemsCompanion extends UpdateCompanion<TrxItem> {
       name: name ?? this.name,
       qty: qty ?? this.qty,
       price: price ?? this.price,
+      unitCost: unitCost ?? this.unitCost,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5168,6 +5212,9 @@ class TransactionItemsCompanion extends UpdateCompanion<TrxItem> {
     if (price.present) {
       map['price'] = Variable<double>(price.value);
     }
+    if (unitCost.present) {
+      map['unit_cost'] = Variable<double>(unitCost.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5185,6 +5232,7 @@ class TransactionItemsCompanion extends UpdateCompanion<TrxItem> {
           ..write('name: $name, ')
           ..write('qty: $qty, ')
           ..write('price: $price, ')
+          ..write('unitCost: $unitCost, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -16048,6 +16096,7 @@ typedef $$TransactionItemsTableCreateCompanionBuilder =
       required String name,
       required double qty,
       required double price,
+      Value<double> unitCost,
       Value<int> rowid,
     });
 typedef $$TransactionItemsTableUpdateCompanionBuilder =
@@ -16060,6 +16109,7 @@ typedef $$TransactionItemsTableUpdateCompanionBuilder =
       Value<String> name,
       Value<double> qty,
       Value<double> price,
+      Value<double> unitCost,
       Value<int> rowid,
     });
 
@@ -16148,6 +16198,11 @@ class $$TransactionItemsTableFilterComposer
 
   ColumnFilters<double> get subtotal => $composableBuilder(
     column: $table.subtotal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get unitCost => $composableBuilder(
+    column: $table.unitCost,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16242,6 +16297,11 @@ class $$TransactionItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get unitCost => $composableBuilder(
+    column: $table.unitCost,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$TransactionsTableOrderingComposer get transactionId {
     final $$TransactionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -16318,6 +16378,9 @@ class $$TransactionItemsTableAnnotationComposer
 
   GeneratedColumn<double> get subtotal =>
       $composableBuilder(column: $table.subtotal, builder: (column) => column);
+
+  GeneratedColumn<double> get unitCost =>
+      $composableBuilder(column: $table.unitCost, builder: (column) => column);
 
   $$TransactionsTableAnnotationComposer get transactionId {
     final $$TransactionsTableAnnotationComposer composer = $composerBuilder(
@@ -16404,6 +16467,7 @@ class $$TransactionItemsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<double> qty = const Value.absent(),
                 Value<double> price = const Value.absent(),
+                Value<double> unitCost = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TransactionItemsCompanion(
                 id: id,
@@ -16414,6 +16478,7 @@ class $$TransactionItemsTableTableManager
                 name: name,
                 qty: qty,
                 price: price,
+                unitCost: unitCost,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -16426,6 +16491,7 @@ class $$TransactionItemsTableTableManager
                 required String name,
                 required double qty,
                 required double price,
+                Value<double> unitCost = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TransactionItemsCompanion.insert(
                 id: id,
@@ -16436,6 +16502,7 @@ class $$TransactionItemsTableTableManager
                 name: name,
                 qty: qty,
                 price: price,
+                unitCost: unitCost,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

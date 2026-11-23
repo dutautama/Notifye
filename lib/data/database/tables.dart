@@ -141,6 +141,9 @@ class TransactionItems extends Table with UuidPk, Timestamps {
   RealColumn get qty => real().check(qty.isBiggerThanValue(0))();
   RealColumn get price => real().check(price.isBiggerOrEqualValue(0))();
   RealColumn get subtotal => real().generatedAs(qty * price, stored: true)();
+
+  /// v3: modal per unit SAAT transaksi (snapshot harga modal produk) → dasar hitung laba.
+  RealColumn get unitCost => real().withDefault(const Constant(0)).check(unitCost.isBiggerOrEqualValue(0))();
 }
 
 @DataClassName('Payment')

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../core/formatters.dart';
 import '../../../data/repositories/invoice_repository.dart';
+import '../../../data/repositories/transaksi_repository.dart';
 import '../../../providers/app_providers.dart';
 import '../../../services/attachment_service.dart';
 import '../../../services/documents/escpos.dart';
@@ -283,6 +284,10 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
                     if (t.tax > 0) _line('Pajak', Fmt.rupiah(t.tax)),
                     _line('Total', Fmt.rupiah(t.total), bold: true),
                     _line('Dibayar', Fmt.rupiah(t.paidAmount)),
+                  if (t.type == 'sale') ...[
+                    const Divider(),
+                    _profitLine(context, d),
+                  ],
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -327,6 +332,32 @@ class _TrxDetailScreenState extends ConsumerState<TrxDetailScreen> {
           ),
         );
       },
+    );
+  }
+
+  /// Laba transaksi (hanya tampil di aplikasi; tidak pernah dicetak di invoice/struk).
+  Widget _profitLine(BuildContext context, InvoiceData d) {
+    final cost = d.items.fold<double>(0, (s, i) => s + i.qty * i.unitCost);
+    final net = d.trx.subtotal - d.trx.discount;
+    final profit = marginOf(subtotal: d.trx.subtotal, discount: d.trx.discount, cost: cost);
+    final pct = net == 0 ? 0 : profit * 100 / net;
+    final color = profit < 0 ? Theme.of(context).colorScheme.error : Colors.green.shade700;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          const Expanded(child: Text('Modal')),
+          Text(Fmt.rupiah(cost)),
+        ]),
+        Text('Laba transaksi ini', style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('${Fmt.rupiah(profit)} (margin ${pct.toStringAsFixed(0)}%)',
+              style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+        ),
+        Text('Hanya terlihat di aplikasi, tidak dicetak di invoice/struk.',
+            style: Theme.of(context).textTheme.bodySmall),
+      ]),
     );
   }
 

@@ -40,5 +40,15 @@
 | 28 | Pindai QR itu dengan kamera HP biasa | Muncul teks nomor, tanggal, total, dibayar, status |
 | 29 | Usaha → **Verifikasi invoice** → Pindai QR invoice | **ASLI** + "Sesuai dengan data transaksi terkini" |
 
+## Laba / margin (v1.5.0)
+| # | Langkah | Hasil yang benar |
+|---|---|---|
+| 30 | Produk Kaos: harga jual 85.000, **harga modal 50.000** → jual 2 pcs | Beranda: **Laba hari ini Rp 70.000**, omzet Rp 170.000 di bawahnya |
+| 31 | Buka transaksi itu | Baris "Modal Rp 100.000" & "Laba transaksi ini Rp 70.000 (margin 41%)" |
+| 32 | Ubah harga modal Kaos jadi 60.000 | Laba transaksi tadi **tetap** Rp 70.000 |
+| 33 | Penjualan → item **Manual** "Jasa sablon" harga 30.000, modal 10.000 | "Perkiraan laba" di form bertambah Rp 20.000 |
+| 34 | Laporan → Excel | Sheet Ringkasan: Laba & Margin %; sheet Penjualan & Item terjual punya kolom Modal & Laba |
+| 35 | Invoice PDF transaksi tersebut | Modal & laba **tidak** tampil |
+
 Izin yang akan diminta Android (hanya saat fitur dipakai): **Kamera** (scan barcode),
 **Perangkat di sekitar** (printer Bluetooth). Aplikasi tidak meminta izin internet.

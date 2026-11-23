@@ -138,7 +138,7 @@ Semua fitur wajib selesai (skema v1, tidak ada perubahan skema sejak migrasi off
 | 13 | Daftar bacaan/tontonan (tipe, status, rating, progress, statistik, terima share link) | ✅ v1.2.0 |
 | 14 | Tautan antar-modul (catatan ↔ produk/pelanggan/transaksi/ide/bacaan; bacaan ↔ ide) | ✅ v1.3.0 |
 | 15 | Beranda ringkas + navigasi baru + polish | ✅ v1.3.0 |
-Skema v2 DISETUJUI pemilik 2026-11-22 & dirilis (6 tabel + notes_fts). Perubahan skema berikutnya = v3, wajib konfirmasi lagi.
+Skema v2 DISETUJUI & dirilis (6 tabel + notes_fts). Skema v3 DISETUJUI 2026-11-23 & dirilis v1.5.0 (transaction_items.unit_cost). Perubahan skema berikutnya = v4, wajib konfirmasi lagi.
 Hasil cek: FTS5 tersedia di SQLite 3.54 bawaan sqlite3 3.x; receive_sharing_intent 1.9.0 aktif.
 iOS: kode & build IPA unsigned ✅; penandatanganan/TestFlight ⏳ menunggu keputusan pemilik.
 Invoice v1.4.0: QR tanda tangan digital Ed25519 + layar Verifikasi invoice (tanpa perubahan skema; pengaturan di tabel meta).
@@ -163,6 +163,10 @@ Ide lanjutan (belum diminta): enkripsi database (SQLCipher), backup terenkripsi 
 - Folder lampiran: `AppResetService.attachmentsDir()` (`<documents>/attachments`).
 
 ## Catatan Pelajaran
+- LABA (v1.5.0, skema v3): `transaction_items.unit_cost` = snapshot harga modal saat transaksi (`_unitCostFor`).
+  Laba = (subtotal − diskon) − Σ(qty × unit_cost), pajak bukan laba (`marginOf`). Beranda/Laporan menampilkan LABA
+  sebagai angka utama, omzet sekunder. Invoice/struk/QR TIDAK BOLEH memuat modal/laba.
+  Migrasi v3 & restore backup < v3: modal item penjualan diisi dari harga modal produk saat itu (`backfillUnitCostSql`).
 - Tanda tangan invoice: `InvoiceSigner` (Ed25519 via `cryptography`, seed 32 byte di flutter_secure_storage,
   kunci publik + nama/jabatan penanda tangan + saklar QR di tabel `meta`). QR = teks terbaca manusia + `Sig:`
   atas baris kanonik (nilai dibersihkan dari baris baru). Kunci TIDAK ikut backup (sengaja) → HP baru = kunci baru,

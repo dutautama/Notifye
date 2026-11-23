@@ -24,6 +24,7 @@ class ReportData {
     required this.products,
     required this.debts,
     required this.content,
+    this.salesCost = const {},
   });
 
   final DateTime from;
@@ -35,6 +36,20 @@ class ReportData {
   final List<Product> products; // yang melacak stok
   final List<DebtRow> debts; // semua yang belum lunas (posisi saat ini)
   final List<ContentPerformanceRow> content;
+
+  /// Total modal per transaksi penjualan (id → modal).
+  final Map<String, double> salesCost;
+
+  double costOf(TrxListRow r) => salesCost[r.trx.id] ?? 0;
+
+  /// Laba (margin) satu penjualan: (subtotal − diskon) − modal. Pajak bukan laba.
+  double profitOf(TrxListRow r) =>
+      marginOf(subtotal: r.trx.subtotal, discount: r.trx.discount, cost: costOf(r));
+
+  double get profit => sales.fold(0, (s, r) => s + profitOf(r));
+  double get netSales => sales.fold(0, (s, r) => s + r.trx.subtotal - r.trx.discount);
+  double get totalCost => sales.fold(0, (s, r) => s + costOf(r));
+  double get marginPercent => netSales == 0 ? 0 : profit * 100 / netSales;
 
   double get omzet => sales.fold(0, (s, r) => s + r.trx.total);
   double get received => sales.fold(0, (s, r) => s + r.trx.paidAmount);
@@ -67,11 +82,13 @@ class ReportService {
 
   Future<ReportData> load(DateTime from, DateTime to) async {
     final products = (await produk.watchAll(includeInactive: true).first).where((p) => p.trackStock).toList();
+    final sales = await transaksi.listForPeriod('sale', from, to);
     return ReportData(
       from: from,
       to: to,
       businessName: (await invoice.getProfile()).name,
-      sales: await transaksi.listForPeriod('sale', from, to),
+      sales: sales,
+      salesCost: await transaksi.costByTransaction([for (final r in sales) r.trx.id]),
       purchases: await transaksi.listForPeriod('purchase', from, to),
       soldItems: await transaksi.itemSummary('sale', from, to),
       products: products,
@@ -93,7 +110,10 @@ List<(String, List<List<Object?>>)> reportTables(ReportData d) => [
     [
       ['Laporan', d.businessName],
       ['Periode', d.periodLabel],
-      ['Omzet penjualan', d.omzet],
+      ['Laba (margin) = penjualan - modal', d.profit],
+      ['Margin (%)', double.parse(d.marginPercent.toStringAsFixed(1))],
+      ['Omzet penjualan (termasuk pajak)', d.omzet],
+      ['Total modal barang/jasa terjual', d.totalCost],
       ['Uang diterima', d.received],
       ['Jumlah transaksi penjualan', d.sales.length],
       ['Total pembelian', d.purchaseTotal],
@@ -109,13 +129,15 @@ List<(String, List<List<Object?>>)> reportTables(ReportData d) => [
   (
     'Penjualan',
     [
-      ['Tanggal', 'Nomor', 'Pelanggan', 'Total', 'Dibayar', 'Sisa', 'Status'],
+      ['Tanggal', 'Nomor', 'Pelanggan', 'Total', 'Modal', 'Laba', 'Dibayar', 'Sisa', 'Status'],
       for (final r in d.sales)
         [
           Fmt.date(r.trx.trxDate),
           r.trx.number,
           r.partyName,
           r.trx.total,
+          d.costOf(r),
+          d.profitOf(r),
           r.trx.paidAmount,
           r.trx.total - r.trx.paidAmount,
           _status[r.trx.status],
@@ -125,8 +147,9 @@ List<(String, List<List<Object?>>)> reportTables(ReportData d) => [
   (
     'Item terjual',
     [
-      ['Item', 'Qty', 'Nilai'],
-      for (final i in d.soldItems) [i.name, i.qty, i.revenue],
+      ['Item', 'Qty', 'Nilai jual', 'Modal', 'Laba', 'Margin (%)'],
+      for (final i in d.soldItems)
+        [i.name, i.qty, i.revenue, i.cost, i.profit, double.parse(i.marginPercent.toStringAsFixed(1))],
     ],
   ),
   (

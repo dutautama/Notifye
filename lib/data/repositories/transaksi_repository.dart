@@ -4,12 +4,19 @@ import '../database/app_database.dart';
 import 'invoice_repository.dart';
 
 class TrxItemInput {
-  const TrxItemInput({this.productId, required this.name, required this.qty, required this.price});
+  const TrxItemInput({this.productId, required this.name, required this.qty, required this.price, this.unitCost});
   final String? productId;
   final String name;
   final double qty;
   final double price;
+
+  /// Modal per unit. null → diambil dari harga modal produk saat ini (penjualan) / 0.
+  final double? unitCost;
 }
+
+/// Laba (margin) satu penjualan: (subtotal − diskon) − total modal. Pajak bukan laba.
+double marginOf({required double subtotal, required double discount, required double cost}) =>
+    subtotal - discount - cost;
 
 class TrxInput {
   const TrxInput({
@@ -41,10 +48,11 @@ class TrxInput {
 
 /// Ringkasan penjualan per hari (untuk dashboard & laporan).
 class DailySalesRow {
-  const DailySalesRow(this.date, this.omzet, this.trxCount);
+  const DailySalesRow(this.date, this.omzet, this.trxCount, [this.profit = 0]);
   final DateTime date;
   final double omzet;
   final int trxCount;
+  final double profit; // laba (margin)
 }
 
 /// Baris daftar transaksi + nama pihak (pelanggan/supplier).
@@ -56,10 +64,13 @@ class TrxListRow {
 
 /// Rekap per item untuk laporan (produk terlaris / terbanyak dibeli).
 class ItemSummaryRow {
-  const ItemSummaryRow(this.name, this.qty, this.revenue);
+  const ItemSummaryRow(this.name, this.qty, this.revenue, [this.cost = 0]);
   final String name;
   final double qty;
   final double revenue;
+  final double cost;
+  double get profit => revenue - cost;
+  double get marginPercent => revenue == 0 ? 0 : profit * 100 / revenue;
 }
 
 /// Transaksi penjualan/pembelian & pembayaran.
@@ -107,6 +118,7 @@ class TransaksiRepository {
                 name: item.name,
                 qty: item.qty,
                 price: item.price,
+                unitCost: Value(await _unitCostFor(input.type, item)),
               ),
             );
       }
@@ -197,7 +209,8 @@ class TransaksiRepository {
   Future<List<ItemSummaryRow>> itemSummary(String type, DateTime from, DateTime to) async {
     final rows = await _db
         .customSelect(
-          'SELECT ti.name AS name, SUM(ti.qty) AS qty, SUM(ti.subtotal) AS revenue '
+          'SELECT ti.name AS name, SUM(ti.qty) AS qty, SUM(ti.subtotal) AS revenue, '
+          'SUM(ti.qty * ti.unit_cost) AS cost '
           'FROM transaction_items ti JOIN transactions t ON t.id = ti.transaction_id '
           'WHERE t.deleted_at IS NULL AND t.type = ? AND t.trx_date >= ? AND t.trx_date < ? '
           'GROUP BY lower(ti.name) ORDER BY revenue DESC',
@@ -210,7 +223,8 @@ class TransaksiRepository {
         )
         .get();
     return [
-      for (final r in rows) ItemSummaryRow(r.read<String>('name'), r.read<double>('qty'), r.read<double>('revenue')),
+      for (final r in rows)
+        ItemSummaryRow(r.read<String>('name'), r.read<double>('qty'), r.read<double>('revenue'), r.read<double>('cost')),
     ];
   }
 
@@ -256,24 +270,56 @@ class TransaksiRepository {
       .write(PaymentsCompanion(deletedAt: Value(DateTime.now()), updatedAt: Value(DateTime.now())));
 
   /// Omzet penjualan per hari dalam rentang [from]..[to] (inklusif, tanggal lokal).
+  /// Snapshot modal per unit: nilai eksplisit, atau harga modal produk saat ini (penjualan).
+  /// Pembelian: modal = harga beli itu sendiri.
+  Future<double> _unitCostFor(String type, TrxItemInput item) async {
+    if (item.unitCost != null) return item.unitCost! < 0 ? 0 : item.unitCost!;
+    if (type == 'purchase') return item.price;
+    if (item.productId == null) return 0;
+    final p = await (_db.select(_db.products)..where((x) => x.id.equals(item.productId!))).getSingleOrNull();
+    return p?.buyPrice ?? 0;
+  }
+
+  /// Omzet, jumlah transaksi & laba penjualan per hari dalam [from]..[to] (inklusif, tanggal lokal).
   Future<List<DailySalesRow>> dailySales(DateTime from, DateTime to) async {
-    final rows =
-        await (_db.select(_db.transactions)..where(
-              (t) =>
-                  t.type.equals('sale') &
-                  t.deletedAt.isNull() &
-                  t.trxDate.isBiggerOrEqualValue(_dateOnly(from)) &
-                  t.trxDate.isSmallerThanValue(_dateOnly(to).add(const Duration(days: 1))),
-            ))
-            .get();
-    final byDay = <DateTime, (double, int)>{};
-    for (final t in rows) {
-      final d = _dateOnly(t.trxDate);
-      final cur = byDay[d] ?? (0.0, 0);
-      byDay[d] = (cur.$1 + t.total, cur.$2 + 1);
+    final rows = await _db.customSelect(
+      'SELECT t.trx_date AS d, t.total AS total, t.subtotal AS subtotal, t.discount AS discount, '
+      'COALESCE((SELECT SUM(ti.qty * ti.unit_cost) FROM transaction_items ti WHERE ti.transaction_id = t.id), 0) AS cost '
+      "FROM transactions t WHERE t.type = 'sale' AND t.deleted_at IS NULL AND t.trx_date >= ? AND t.trx_date < ?",
+      variables: [
+        Variable.withDateTime(_dateOnly(from)),
+        Variable.withDateTime(_dateOnly(to).add(const Duration(days: 1))),
+      ],
+      readsFrom: {_db.transactions, _db.transactionItems},
+    ).get();
+    final byDay = <DateTime, (double, int, double)>{};
+    for (final r in rows) {
+      final d = _dateOnly(r.read<DateTime>('d'));
+      final profit = marginOf(
+          subtotal: r.read<double>('subtotal'), discount: r.read<double>('discount'), cost: r.read<double>('cost'));
+      final cur = byDay[d] ?? (0.0, 0, 0.0);
+      byDay[d] = (cur.$1 + r.read<double>('total'), cur.$2 + 1, cur.$3 + profit);
     }
-    return [for (final e in byDay.entries) DailySalesRow(e.key, e.value.$1, e.value.$2)]
+    return [for (final e in byDay.entries) DailySalesRow(e.key, e.value.$1, e.value.$2, e.value.$3)]
       ..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  /// Total modal per transaksi (untuk laporan laba per transaksi).
+  Future<Map<String, double>> costByTransaction(List<String> trxIds) async {
+    final out = <String, double>{};
+    for (var i = 0; i < trxIds.length; i += 500) {
+      final chunk = trxIds.sublist(i, i + 500 > trxIds.length ? trxIds.length : i + 500);
+      final rows = await _db.customSelect(
+        'SELECT transaction_id AS id, SUM(qty * unit_cost) AS cost FROM transaction_items '
+        'WHERE transaction_id IN (${List.filled(chunk.length, '?').join(',')}) GROUP BY transaction_id',
+        variables: [for (final id in chunk) Variable.withString(id)],
+        readsFrom: {_db.transactionItems},
+      ).get();
+      for (final r in rows) {
+        out[r.read<String>('id')] = r.read<double>('cost');
+      }
+    }
+    return out;
   }
 
   static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);

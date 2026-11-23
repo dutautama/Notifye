@@ -43,6 +43,8 @@ class DashboardService {
       salesToday: sumOmzet(sales, today, today),
       trxCountToday: sumCount(sales, today, today),
       salesThisMonth: sumOmzet(sales, monthStart, today),
+      profitToday: sumProfit(sales, today, today),
+      profitThisMonth: sumProfit(sales, monthStart, today),
       trxCountThisMonth: sumCount(sales, monthStart, today),
       last7Days: buildDailySeries(sales, from: sevenDaysAgo, to: today),
       receivableTotal: totals.receivableTotal,
@@ -66,6 +68,9 @@ class DashboardService {
 Iterable<DailySalesRow> _inRange(List<DailySalesRow> rows, DateTime from, DateTime to) =>
     rows.where((r) => !r.date.isBefore(from) && !r.date.isAfter(to));
 
+double sumProfit(List<DailySalesRow> rows, DateTime from, DateTime to) =>
+    _inRange(rows, from, to).fold(0, (s, r) => s + r.profit);
+
 double sumOmzet(List<DailySalesRow> rows, DateTime from, DateTime to) =>
     _inRange(rows, from, to).fold(0, (s, r) => s + r.omzet);
 
@@ -78,7 +83,7 @@ List<DailySales> buildDailySeries(List<DailySalesRow> rows, {required DateTime f
   final out = <DailySales>[];
   for (var d = DateTime(from.year, from.month, from.day); !d.isAfter(to); d = DateTime(d.year, d.month, d.day + 1)) {
     final r = byDate[d];
-    out.add(DailySales(d, r?.omzet ?? 0, r?.trxCount ?? 0));
+    out.add(DailySales(d, r?.omzet ?? 0, r?.trxCount ?? 0, r?.profit ?? 0));
   }
   return out;
 }

@@ -45,6 +45,11 @@ void main() {
     final d = await svc.load(DateTime(2026, 11, 1), DateTime(2026, 11, 30));
     expect(d.sales.length, 1);
     expect(d.omzet, 150000);
+    // Kaos modal 30.000 (harga modal produk saat jual): laba = 150.000 − 2×30.000 = 90.000
+    expect(d.profit, 90000);
+    expect(d.totalCost, 60000);
+    expect(d.marginPercent, 60);
+    expect(d.soldItems.single.profit, 90000);
     expect(d.received, 100000);
     expect(d.purchaseTotal, 150000);
     expect(d.soldItems.single.qty, 2);

@@ -162,18 +162,26 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   _Kpis(d: d),
                   const SizedBox(height: 12),
                   SectionCard(
-                    title: 'Item terlaris',
+                    title: 'Item terlaris (laba)',
                     icon: Icons.emoji_events_outlined,
                     child: d.soldItems.isEmpty
                         ? const EmptyHint('Belum ada penjualan di periode ini.')
                         : Column(
                             children: [
-                              for (final i in d.soldItems.take(10))
+                              for (final i in ([...d.soldItems]..sort((a, b) => b.profit.compareTo(a.profit))).take(10))
                                 ListTile(
                                   dense: true,
                                   title: Text(i.name),
-                                  subtitle: Text('Terjual ${Fmt.number(i.qty)}'),
-                                  trailing: Text(Fmt.rupiah(i.revenue)),
+                                  subtitle: Text('Terjual ${Fmt.number(i.qty)} • omzet ${Fmt.rupiah(i.revenue)}'),
+                                  trailing: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(Fmt.rupiah(i.profit), style: const TextStyle(fontWeight: FontWeight.w600)),
+                                      Text('margin ${i.marginPercent.toStringAsFixed(0)}%',
+                                          style: Theme.of(context).textTheme.bodySmall),
+                                    ],
+                                  ),
                                 ),
                             ],
                           ),
@@ -262,6 +270,13 @@ class _Kpis extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cards = [
+      StatCard(
+        label: 'Laba (margin)',
+        value: Fmt.rupiah(d.profit),
+        caption: 'Margin ${d.marginPercent.toStringAsFixed(1)}% • modal ${Fmt.rupiah(d.totalCost)}',
+        icon: Icons.savings_outlined,
+        color: d.profit < 0 ? Theme.of(context).colorScheme.error : Colors.green.shade700,
+      ),
       StatCard(
         label: 'Omzet',
         value: Fmt.rupiah(d.omzet),

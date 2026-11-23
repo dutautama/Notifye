@@ -89,7 +89,7 @@ void main() {
       print('DBG ${d.toString().split('\n').where((l) => l.contains('lib/') || l.contains('overflowed') || l.contains('creator')).take(12).join('\n')}');
       orig?.call(d);
     };
-    await visit('/beranda', 'Omzet hari ini');
+    await visit('/beranda', 'Laba hari ini');
     await visit('/usaha', 'Piutang');
     await visit('/usaha/produk', 'Kaos Sablon');
     await visit('/usaha/produk/baru', 'Produk/jasa baru');
@@ -107,7 +107,7 @@ void main() {
     await visit('/konten/ide/baru', 'Ide konten baru');
     await visit('/konten/ide/$ideaId', 'Produk/jasa yang dipromosikan');
     await visit('/konten/ide/$ideaId/ubah', 'Ubah ide konten');
-    await visit('/laporan', 'Omzet');
+    await visit('/laporan', 'Laba (margin)');
     await visit('/catatan', 'Catatan ukuran kaos');
     await visit('/catatan/baru', 'Kategori');
     await visit('/catatan/$noteId', 'XL');
@@ -142,14 +142,14 @@ void main() {
     // Putaran 2: ukuran font HP diperbesar 130%.
     tester.platformDispatcher.textScaleFactorTestValue = 1.3;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-    await visit('/beranda', 'Omzet hari ini');
+    await visit('/beranda', 'Laba hari ini');
     await visit('/usaha', 'Piutang');
     await visit('/usaha/produk/baru', 'Produk/jasa baru');
     await visit('/usaha/transaksi/baru?jenis=sale', 'Penjualan baru');
     await visit('/usaha/transaksi/$trxId', 'Catat bayar');
     await visit('/usaha/hutang-piutang', 'Budi Santoso');
     await visit('/konten/ide/$ideaId', 'Produk/jasa yang dipromosikan');
-    await visit('/laporan', 'Omzet');
+    await visit('/laporan', 'Laba (margin)');
     await visit('/catatan', 'Catatan ukuran kaos');
     await visit('/catatan/$noteId', 'XL');
     await visit('/pengaturan', 'Profil Usaha');

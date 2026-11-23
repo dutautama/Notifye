@@ -14,6 +14,16 @@ void main() {
     expect(t.total, 122100);
   });
 
+  test('perkiraan laba di form: (subtotal − diskon) − modal', () {
+    final items = [
+      DraftItem(name: 'Kaos', qty: 2, price: 50000, unitCost: 30000),
+      DraftItem(name: 'Jasa', qty: 1, price: 20000),
+    ];
+    expect(estimateProfit(items, 5000), 120000 - 5000 - 60000);
+    expect(items.first.toInput().unitCost, 30000);
+    expect(items.last.toInput().unitCost, 0);
+  });
+
   test('diskon tidak boleh melebihi subtotal', () {
     final t = computeDraftTotals([DraftItem(name: 'A', qty: 1, price: 1000)], discount: 5000);
     expect(t.discount, 1000);
